@@ -6,6 +6,7 @@
 <title>Espace Devoirs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="questions_db.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -188,6 +189,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="stat-pill"><span class="dot dw"></span>Erreurs&nbsp;: <strong id="st-wrong">0</strong></div>
   <div class="stat-pill"><span class="dot ds"></span>S&#233;rie&nbsp;: <strong id="st-streak">0</strong></div>
   <button id="btn-rst" onclick="resetStats()">&#x1F5D1; R&#233;init.</button>
+  <button id="btn-export" class="stat-pill" onclick="exportQuestionsDB()" style="cursor:pointer;border:1.5px solid #1B9E78;background:#EDFAEB;color:#0A6B51;font-size:.78rem;font-weight:800;">&#x1F4E5; Exporter BD</button>
   <div id="ak-bar"></div>
 </div>
 
@@ -229,7 +231,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
       <div id="qm-pt"><span id="qp-left"></span><span id="qp-score"></span></div>
     </div>
     <div id="qm-body">
-      <div id="q-load"><div class="spin"></div><p>G&#233;n&#233;ration des questions par IA&#8230;</p></div>
+      <div id="q-load"><div class="spin"></div><p>Chargement des questions&#8230;</p></div>
       <div id="q-qa" style="display:none"></div>
       <div id="q-res"></div>
     </div>
@@ -477,6 +479,52 @@ function setCount(key, n, btn){
 // ---- QUIZ STATE -------------------------------------------------
 var CQ=null, qIdx=0, qAns=false, qScore=0;
 
+// ---- QUESTION DB HELPERS ----------------------------------------
+function getMergedBank(key){
+  var base=(typeof QUESTION_BANK!=='undefined'&&QUESTION_BANK[key])?QUESTION_BANK[key]:[];
+  var stored=JSON.parse(localStorage.getItem('dv-qbank')||'{}');
+  var added=stored[key]||[];
+  return base.concat(added);
+}
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+function getLocalQuestions(key,topics,allTops,count){
+  var pool=getMergedBank(key);
+  if(topics&&topics.length<allTops.length){
+    pool=pool.filter(function(q){return topics.indexOf(q.subtopic)!==-1;});
+  }
+  return shuffle(pool).slice(0,count);
+}
+function saveNewQuestions(key,newQs){
+  if(!newQs||!newQs.length) return;
+  var stored=JSON.parse(localStorage.getItem('dv-qbank')||'{}');
+  if(!stored[key]) stored[key]=[];
+  stored[key]=stored[key].concat(newQs);
+  localStorage.setItem('dv-qbank',JSON.stringify(stored));
+}
+function exportQuestionsDB(){
+  var allKeys=[];
+  if(typeof QUESTION_BANK!=='undefined') Object.keys(QUESTION_BANK).forEach(function(k){allKeys.push(k);});
+  var stored=JSON.parse(localStorage.getItem('dv-qbank')||'{}');
+  Object.keys(stored).forEach(function(k){if(allKeys.indexOf(k)===-1)allKeys.push(k);});
+  var merged={};
+  allKeys.forEach(function(k){merged[k]=getMergedBank(k);});
+  var total=allKeys.reduce(function(s,k){return s+merged[k].length;},0);
+  var content='// Espace Devoirs \u2014 Base de questions PFEQ Qu\u00e9bec\n'
+    +'// Mise \u00e0 jour : '+new Date().toLocaleDateString('fr-CA')+' \u2014 '+total+' questions\n\n'
+    +'var QUESTION_BANK = '+JSON.stringify(merged,null,2)+';\n';
+  var blob=new Blob([content],{type:'text/javascript'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='questions_db.js';
+  a.click();
+  toast('\ud83d\udce5 questions_db.js t\u00e9l\u00e9charg\u00e9 ('+total+' questions)');
+}
+
+// ---- HYBRID QUIZ START ------------------------------------------
 function startQuiz(key,si,grade,e){
   e.stopPropagation();
   var data=grade==='sec1'?SEC1:PRI5, s=data[si];
@@ -493,16 +541,30 @@ function startQuiz(key,si,grade,e){
   document.getElementById('quiz-modal').style.setProperty('--ql',s.l);
   document.getElementById('qm-pb').style.background=s.c;
   openQM(); showLoad();
-  generate(s,topics,grade,nq)
-    .then(function(qs){ CQ.qs=qs; showQ(0); })
-    .catch(function(err){
-      console.error(err);
-      if(err.message==='NO_KEY'||err.message==='BAD_KEY'){ closeQuiz(); return; }
-      document.getElementById('q-load').innerHTML=
-        '<p style="color:#E63946;font-weight:700;padding:20px 0">Erreur\u00a0: '+err.message+
-        '<br><small style="opacity:.7">V\u00e9rifie ta connexion et ta cl\u00e9 API.</small></p>'+
-        '<button onclick="closeQuiz()" style="margin-top:14px;padding:10px 20px;border-radius:12px;border:none;background:'+s.c+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer">Fermer</button>';
-    });
+  var localCount=Math.round(nq*0.75);
+  var localQs=getLocalQuestions(key,topics,s.tops,localCount);
+  var apiCount=nq-localQs.length; // fill the rest with API
+  if(apiCount>0&&getKey()){
+    generate(s,topics,grade,apiCount)
+      .then(function(newQs){
+        saveNewQuestions(key,newQs);
+        CQ.qs=shuffle(localQs.concat(newQs)).slice(0,nq);
+        showQ(0);
+      })
+      .catch(function(err){
+        console.error(err);
+        if(localQs.length>0){CQ.qs=localQs;showQ(0);}
+        else if(err.message==='NO_KEY'||err.message==='BAD_KEY'){closeQuiz();}
+        else{
+          document.getElementById('q-load').innerHTML=
+            '<p style="color:#E63946;font-weight:700;padding:20px 0">Erreur\u00a0: '+err.message+'</p>'
+            +'<button onclick="closeQuiz()" style="margin-top:14px;padding:10px 20px;border-radius:12px;border:none;background:'+s.c+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer">Fermer</button>';
+        }
+      });
+  } else {
+    if(localQs.length>0){CQ.qs=localQs;showQ(0);}
+    else{document.getElementById('q-load').innerHTML='<p style="color:#E63946;font-weight:700;padding:20px">Aucune question disponible. Ajoute une cl\u00e9 API pour en g\u00e9n\u00e9rer.</p>';}
+  }
 }
 
 function openQM(){ document.getElementById('quiz-ov').classList.add('open'); document.body.style.overflow='hidden'; }
@@ -698,9 +760,24 @@ function showRes(){
 function retryQuiz(){
   qIdx=0;qAns=false;qScore=0;
   document.getElementById('q-res').style.display='none'; showLoad();
-  generate(CQ.s,CQ.topics,CQ.grade,CQ.nq)
-    .then(function(qs){CQ.qs=qs;showQ(0);})
-    .catch(function(){document.getElementById('q-load').innerHTML='<p style="color:#E63946;font-weight:700;padding:20px">Erreur. R\u00e9essaie.</p>';});
+  var localCount=Math.round(CQ.nq*0.75);
+  var localQs=getLocalQuestions(CQ.key,CQ.topics,CQ.s.tops,localCount);
+  var apiCount=CQ.nq-localQs.length;
+  if(apiCount>0&&getKey()){
+    generate(CQ.s,CQ.topics,CQ.grade,apiCount)
+      .then(function(newQs){
+        saveNewQuestions(CQ.key,newQs);
+        CQ.qs=shuffle(localQs.concat(newQs)).slice(0,CQ.nq);
+        showQ(0);
+      })
+      .catch(function(){
+        if(localQs.length>0){CQ.qs=localQs;showQ(0);}
+        else{document.getElementById('q-load').innerHTML='<p style="color:#E63946;font-weight:700;padding:20px">Erreur. R\u00e9essaie.</p>';}
+      });
+  } else {
+    if(localQs.length>0){CQ.qs=localQs;showQ(0);}
+    else{document.getElementById('q-load').innerHTML='<p style="color:#E63946;font-weight:700;padding:20px">Aucune question disponible.</p>';}
+  }
 }
 
 // ---- PASSWORD ---------------------------------------------------
