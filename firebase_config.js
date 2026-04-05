@@ -13,12 +13,12 @@
 // ============================================================
 
 var FIREBASE_CONFIG = {
-  apiKey:            "",   // ← paste your values here
-  authDomain:        "",
-  projectId:         "",
-  storageBucket:     "",
-  messagingSenderId: "",
-  appId:             ""
+  apiKey:            "AIzaSyBDUPVPSJPryo66mFA3dQRR8QaJN8HZ4mo",
+  authDomain:        "mesdevoirs-8888.firebaseapp.com",
+  projectId:         "mesdevoirs-8888",
+  storageBucket:     "mesdevoirs-8888.firebasestorage.app",
+  messagingSenderId: "863943607954",
+  appId:             "1:863943607954:web:3265757970b2c6708b084b"
 };
 
 // ---- Init (do not edit below this line) ----------------------
