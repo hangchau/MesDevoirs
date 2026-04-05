@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="questions_db.js"></script>
+<script src="profiles.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -165,6 +166,51 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 .ak-row button{flex:1;padding:11px;border-radius:12px;border:none;font-family:'Fredoka One',sans-serif;font-size:1rem;cursor:pointer;}
 #btn-aksave{background:#5B4FCF;color:#fff;}
 #btn-akcancel{background:#f0f0f8;color:var(--muted);}
+/* ---- PROFILES ------------------------------------------------- */
+#prof-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.72);z-index:3000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+#prof-ov.open{display:flex;}
+#prof-box{background:#fff;border-radius:26px;width:100%;max-width:560px;padding:30px 28px;box-shadow:0 24px 70px rgba(0,0,0,.28);margin:auto;}
+#prof-box h2{font-family:'Fredoka One',sans-serif;font-size:1.6rem;text-align:center;margin-bottom:4px;}
+#prof-box .prof-sub{text-align:center;font-size:.84rem;color:var(--muted);font-weight:600;margin-bottom:20px;}
+#prof-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px;}
+.prof-card{background:#fafafa;border:2px solid #eee;border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.prof-card:hover{border-color:#5B4FCF;background:#EEF0FF;transform:translateY(-2px);}
+.prof-card .pc-ava{font-size:2.4rem;line-height:1;margin-bottom:6px;}
+.prof-card .pc-name{font-family:'Fredoka One',sans-serif;font-size:1rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prof-card .pc-grade{font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;}
+.pc-grade.sec1{background:#EEF0FF;color:#5B4FCF;}
+.pc-grade.pri5{background:#EDFAEB;color:#1B9E78;}
+.pc-grade.both{background:#FFF5EB;color:#b06000;}
+.prof-card .pc-stat{font-size:.72rem;color:var(--muted);font-weight:700;}
+.prof-card .pc-del{position:absolute;top:6px;right:8px;background:none;border:none;font-size:.85rem;color:#ccc;cursor:pointer;padding:2px;}
+.prof-card .pc-del:hover{color:#E63946;}
+.prof-add{background:none;border:2px dashed #ccc;border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer;color:var(--muted);font-family:'Fredoka One',sans-serif;font-size:1rem;transition:all .2s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+.prof-add:hover{border-color:#5B4FCF;color:#5B4FCF;background:#EEF0FF;}
+.prof-add span{font-size:1.8rem;}
+/* Add/Edit profile modal */
+#padd-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.6);z-index:4000;align-items:center;justify-content:center;padding:20px;}
+#padd-ov.open{display:flex;}
+#padd-box{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+#padd-box h3{font-family:'Fredoka One',sans-serif;font-size:1.3rem;text-align:center;margin-bottom:16px;}
+.padd-lbl{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px;display:block;}
+.ava-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.ava-btn{font-size:1.4rem;width:40px;height:40px;border-radius:10px;border:2px solid #eee;background:#fafafa;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ava-btn:hover,.ava-btn.sel{border-color:#5B4FCF;background:#EEF0FF;}
+#padd-name{width:100%;padding:10px 14px;border:2px solid #e0e0ee;border-radius:12px;font-size:.95rem;font-family:'Nunito',sans-serif;font-weight:700;margin-bottom:14px;}
+#padd-name:focus{outline:none;border-color:#5B4FCF;}
+.grade-row{display:flex;gap:8px;margin-bottom:16px;}
+.grade-opt{flex:1;padding:9px 4px;border-radius:12px;border:2px solid #eee;background:#fafafa;font-family:'Fredoka One',sans-serif;font-size:.85rem;cursor:pointer;text-align:center;transition:all .18s;}
+.grade-opt:hover{border-color:#ccc;}
+.grade-opt.sel-sec1{border-color:#5B4FCF;background:#EEF0FF;color:#5B4FCF;}
+.grade-opt.sel-pri5{border-color:#1B9E78;background:#EDFAEB;color:#1B9E78;}
+.grade-opt.sel-both{border-color:#F4A261;background:#FFF5EB;color:#b06000;}
+.padd-row{display:flex;gap:8px;margin-top:4px;}
+.padd-row button{flex:1;padding:11px;border-radius:12px;border:none;font-family:'Fredoka One',sans-serif;font-size:1rem;cursor:pointer;}
+#btn-padd-save{background:#5B4FCF;color:#fff;}
+#btn-padd-cancel{background:#f0f0f8;color:var(--muted);}
+/* Profile pill in stats bar */
+#prof-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:30px;font-size:.82rem;font-weight:800;background:#EEF0FF;color:#5B4FCF;border:1.5px solid #9B91E0;cursor:pointer;box-shadow:var(--shadow);}
+#prof-pill:hover{background:#5B4FCF;color:#fff;}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:#1e1b3a;color:#fff;padding:10px 20px;border-radius:30px;font-size:.85rem;font-weight:800;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 @media(max-width:600px){
@@ -188,6 +234,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="stat-pill"><span class="dot dok"></span>Correctes&nbsp;: <strong id="st-ok">0</strong></div>
   <div class="stat-pill"><span class="dot dw"></span>Erreurs&nbsp;: <strong id="st-wrong">0</strong></div>
   <div class="stat-pill"><span class="dot ds"></span>S&#233;rie&nbsp;: <strong id="st-streak">0</strong></div>
+  <button id="prof-pill" onclick="openProfileSelector()">&#x1F464; Choisir profil</button>
   <button id="btn-rst" onclick="resetStats()">&#x1F5D1; R&#233;init.</button>
   <button id="btn-export" class="stat-pill" onclick="exportQuestionsDB()" style="cursor:pointer;border:1.5px solid #1B9E78;background:#EDFAEB;color:#0A6B51;font-size:.78rem;font-weight:800;">&#x1F4E5; Exporter BD</button>
   <div id="ak-bar"></div>
@@ -275,6 +322,36 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
     <div class="ak-row">
       <button id="btn-akcancel" onclick="closeAkModal()">Annuler</button>
       <button id="btn-aksave"   onclick="saveApiKey()">&#x1F4BE; Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE SELECTOR -->
+<div id="prof-ov">
+  <div id="prof-box">
+    <h2>&#x1F4DA; Espace Devoirs</h2>
+    <p class="prof-sub">Qui r&#233;vise aujourd&#39;hui&nbsp;?</p>
+    <div id="prof-grid"></div>
+  </div>
+</div>
+
+<!-- ADD / EDIT PROFILE -->
+<div id="padd-ov">
+  <div id="padd-box">
+    <h3 id="padd-title">Nouveau profil</h3>
+    <span class="padd-lbl">Avatar</span>
+    <div class="ava-grid" id="ava-grid"></div>
+    <span class="padd-lbl">Pr&#233;nom</span>
+    <input type="text" id="padd-name" placeholder="Ex. : Emma" maxlength="20">
+    <span class="padd-lbl">Niveau</span>
+    <div class="grade-row">
+      <button class="grade-opt" data-g="sec1" onclick="selectGrade(this)">&#x1F392; Sec. 1</button>
+      <button class="grade-opt" data-g="pri5" onclick="selectGrade(this)">&#x2B50; 5e Ann&#233;e</button>
+      <button class="grade-opt" data-g="both" onclick="selectGrade(this)">&#x1F4DA; Les deux</button>
+    </div>
+    <div class="padd-row">
+      <button id="btn-padd-cancel" onclick="closeAddProfile()">Annuler</button>
+      <button id="btn-padd-save"   onclick="saveProfileForm()">&#x2728; Cr&#233;er</button>
     </div>
   </div>
 </div>
@@ -826,10 +903,163 @@ function toast(msg){
 }
 // Clicking the gray overlay does NOT close the quiz (prevents accidental loss)
 
+// ---- PROFILE SYSTEM ---------------------------------------------
+var _editingProfileId = null;
+var _selectedAvatar   = ProfileManager.AVATARS[0];
+var _selectedGrade    = null;
+
+function openProfileSelector() {
+  renderProfileGrid();
+  document.getElementById('prof-ov').classList.add('open');
+}
+function closeProfileSelector() {
+  document.getElementById('prof-ov').classList.remove('open');
+}
+
+function renderProfileGrid() {
+  var profiles = ProfileManager.getAll();
+  var grid = document.getElementById('prof-grid');
+  var keys = Object.keys(profiles);
+  var html = '';
+  keys.forEach(function(id) {
+    var p = profiles[id];
+    var avg = ProfileManager.avgScore(p);
+    var sess = ProfileManager.totalSessions(p);
+    var gradeLabel = p.grade==='sec1'?'Sec. 1':p.grade==='pri5'?'5e Ann\u00e9e':'Les deux';
+    html +=
+      '<div class="prof-card" onclick="selectProfile(\''+id+'\')">'
+        +'<button class="pc-del" onclick="deleteProfile(event,\''+id+'\')">&#x2715;</button>'
+        +'<div class="pc-ava">'+p.avatar+'</div>'
+        +'<div class="pc-name">'+p.name+'</div>'
+        +'<span class="pc-grade '+p.grade+'">'+gradeLabel+'</span>'
+        +'<div class="pc-stat">'+(avg!==null?avg+'% moy \u00b7 ':'')+sess+' session'+(sess!==1?'s':'')+'</div>'
+      +'</div>';
+  });
+  html += '<button class="prof-add" onclick="openAddProfile(null)">'
+    +'<span>&#x2795;</span>Ajouter un profil</button>';
+  grid.innerHTML = html;
+}
+
+function selectProfile(id) {
+  ProfileManager.setActive(id);
+  var data = ProfileManager.loadStats();
+  if (data) { stats = data.stats; hist = data.hist; }
+  updateBar();
+  updateProfPill();
+  closeProfileSelector();
+  toast('\ud83d\udc4b Bonjour\u00a0'+ProfileManager.getActive().name+'\u00a0!');
+}
+
+function updateProfPill() {
+  var p = ProfileManager.getActive();
+  var pill = document.getElementById('prof-pill');
+  if (p) {
+    pill.innerHTML = p.avatar+' '+p.name+' <span style="opacity:.6;font-size:.7rem">\u25be</span>';
+    pill.style.background = '#EEF0FF';
+    pill.style.color = '#5B4FCF';
+  } else {
+    pill.innerHTML = '&#x1F464; Choisir profil';
+  }
+}
+
+function deleteProfile(e, id) {
+  e.stopPropagation();
+  var p = ProfileManager.getAll()[id];
+  if (!p) return;
+  if (!confirm('Supprimer le profil de '+p.name+' ? Toutes ses statistiques seront perdues.')) return;
+  ProfileManager.remove(id);
+  if (ProfileManager.getActiveId() === id) {
+    stats = {total:0,ok:0,wrong:0,streak:0,best:0}; hist = {};
+    updateBar(); updateProfPill();
+  }
+  renderProfileGrid();
+  toast('Profil supprim\u00e9');
+}
+
+// ---- Add / Edit profile form ------------------------------------
+function openAddProfile(id) {
+  _editingProfileId = id || null;
+  var p = id ? ProfileManager.getAll()[id] : null;
+  document.getElementById('padd-title').textContent = p ? 'Modifier le profil' : 'Nouveau profil';
+  document.getElementById('btn-padd-save').textContent = p ? '\u2705 Enregistrer' : '\u2728 Cr\u00e9er';
+  document.getElementById('padd-name').value = p ? p.name : '';
+  _selectedAvatar = p ? p.avatar : ProfileManager.AVATARS[0];
+  _selectedGrade  = p ? p.grade  : null;
+  // Build avatar grid
+  var ag = document.getElementById('ava-grid');
+  ag.innerHTML = ProfileManager.AVATARS.map(function(a) {
+    return '<button class="ava-btn'+(a===_selectedAvatar?' sel':'')+'" onclick="pickAvatar(this,\''+a+'\')">'+a+'</button>';
+  }).join('');
+  // Grade buttons
+  document.querySelectorAll('.grade-opt').forEach(function(b) {
+    b.className = 'grade-opt' + (b.dataset.g===_selectedGrade?' sel-'+b.dataset.g:'');
+  });
+  document.getElementById('padd-ov').classList.add('open');
+  setTimeout(function(){document.getElementById('padd-name').focus();},60);
+}
+function closeAddProfile() {
+  document.getElementById('padd-ov').classList.remove('open');
+}
+function pickAvatar(btn, avatar) {
+  _selectedAvatar = avatar;
+  document.querySelectorAll('.ava-btn').forEach(function(b){b.classList.remove('sel');});
+  btn.classList.add('sel');
+}
+function selectGrade(btn) {
+  _selectedGrade = btn.dataset.g;
+  document.querySelectorAll('.grade-opt').forEach(function(b){
+    b.className = 'grade-opt' + (b.dataset.g===_selectedGrade?' sel-'+b.dataset.g:'');
+  });
+}
+function saveProfileForm() {
+  var name = document.getElementById('padd-name').value.trim();
+  if (!name) { toast('\u270f\ufe0f Entre un pr\u00e9nom !'); return; }
+  if (!_selectedGrade) { toast('\ud83c\udf92 Choisis un niveau !'); return; }
+  if (_editingProfileId) {
+    ProfileManager.update(_editingProfileId, name, _selectedAvatar, _selectedGrade);
+    toast('Profil mis \u00e0 jour\u00a0!');
+    if (ProfileManager.getActiveId()===_editingProfileId) updateProfPill();
+  } else {
+    var id = ProfileManager.create(name, _selectedAvatar, _selectedGrade);
+    selectProfile(id);
+  }
+  closeAddProfile();
+  renderProfileGrid();
+}
+
+// ---- Override saveAll to persist to active profile --------------
+var _origSaveAll = saveAll;
+saveAll = function() {
+  _origSaveAll();
+  ProfileManager.saveStats(stats, hist);
+};
+
+// ---- Override resetStats to reset active profile ---------------
+var _origResetStats = resetStats;
+resetStats = function() {
+  if (!confirm('Effacer toutes les statistiques ?')) return;
+  stats={total:0,ok:0,wrong:0,streak:0,best:0}; hist={};
+  saveAll(); updateBar();
+  document.querySelectorAll('.card-sc').forEach(function(e){e.textContent='--';e.className='card-sc no';});
+  document.querySelectorAll('.subj-hist').forEach(function(e){e.remove();});
+  toast('Statistiques r\u00e9initialis\u00e9es');
+};
+
 // ---- INIT -------------------------------------------------------
 updateBar(); updateAkBar();
 buildCards(SEC1,'sec1-grid','sec1');
 buildCards(PRI5,'pri5-grid','pri5');
+
+// Profile init — load active profile or show selector
+(function initProfiles() {
+  var data = ProfileManager.loadStats();
+  if (data) {
+    stats = data.stats; hist = data.hist;
+    updateBar(); updateProfPill();
+  } else {
+    openProfileSelector();
+  }
+})();
 </script>
 </body>
 </html>
