@@ -6,6 +6,10 @@
 <title>Espace Devoirs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script src="firebase_config.js"></script>
 <script src="questions_db.js"></script>
 <script src="profiles.js"></script>
 <style>
@@ -1050,15 +1054,21 @@ updateBar(); updateAkBar();
 buildCards(SEC1,'sec1-grid','sec1');
 buildCards(PRI5,'pri5-grid','pri5');
 
-// Profile init — load active profile or show selector
+// Profile init — sync from cloud, then load active profile or show selector
 (function initProfiles() {
-  var data = ProfileManager.loadStats();
-  if (data) {
-    stats = data.stats; hist = data.hist;
-    updateBar(); updateProfPill();
-  } else {
-    openProfileSelector();
-  }
+  ProfileManager.syncFromCloud(function (profiles) {
+    var data = ProfileManager.loadStats();
+    if (data) {
+      stats = data.stats; hist = data.hist;
+      updateBar(); updateProfPill();
+    } else {
+      openProfileSelector();
+    }
+    // Re-render profile grid if it's open
+    if (document.getElementById('prof-ov').classList.contains('open')) {
+      renderProfileGrid();
+    }
+  });
 })();
 </script>
 </body>
