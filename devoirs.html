@@ -824,7 +824,7 @@ function toast(msg){
   var t=document.getElementById('toast'); t.innerHTML=msg; t.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove('show');},2800);
 }
-document.getElementById('quiz-ov').addEventListener('click',function(e){if(e.target===document.getElementById('quiz-ov'))closeQuiz();});
+// Clicking the gray overlay does NOT close the quiz (prevents accidental loss)
 
 // ---- INIT -------------------------------------------------------
 updateBar(); updateAkBar();
