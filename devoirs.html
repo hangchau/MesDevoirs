@@ -34,14 +34,19 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 .tabs{display:flex;gap:12px;padding:0 20px 4px;justify-content:center;}
 .tab-btn{font-family:'Fredoka One',sans-serif;font-size:1.1rem;padding:13px 30px;border-radius:50px;border:3px solid transparent;cursor:pointer;transition:all .22s;background:var(--card);color:var(--muted);box-shadow:var(--shadow);}
 .tab-btn.sec1.active{background:#5B4FCF;color:#fff;border-color:#5B4FCF;transform:translateY(-2px);box-shadow:0 6px 20px rgba(91,79,207,.35);}
-.tab-btn.pri5.active{background:#1B9E78;color:#fff;border-color:#1B9E78;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,158,120,.35);}
+.tab-btn.pri.active{background:#1B9E78;color:#fff;border-color:#1B9E78;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,158,120,.35);}
 .tab-btn:not(.active):hover{transform:translateY(-1px);border-color:#ccc;}
+.pri-subtabs{display:none;gap:8px;padding:0 20px 8px;justify-content:center;flex-wrap:wrap;}
+.pri-subtabs.visible{display:flex;}
+.subtab-btn{font-family:'Fredoka One',sans-serif;font-size:.9rem;padding:7px 16px;border-radius:30px;border:2px solid #1B9E78;cursor:pointer;background:#fff;color:#1B9E78;transition:all .2s;}
+.subtab-btn.active{background:#1B9E78;color:#fff;}
+.subtab-btn:hover:not(.active){background:#EDFAEB;}
 .grade-panel{display:none;padding:16px 16px 0;max-width:1000px;margin:0 auto;animation:fadeIn .3s ease;}
 .grade-panel.visible{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .grade-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px 20px;border-radius:var(--radius);color:#fff;}
 .grade-header.sec1{background:linear-gradient(135deg,#5B4FCF,#7B6FE0);}
-.grade-header.pri5{background:linear-gradient(135deg,#1B9E78,#34C899);}
+.grade-header.pri{background:linear-gradient(135deg,#1B9E78,#34C899);}
 .grade-header .emo{font-size:2.2rem;}
 .grade-header h2{font-family:'Fredoka One',sans-serif;font-size:1.5rem;}
 .grade-header p{font-size:.88rem;opacity:.88;margin-top:2px;font-weight:600;}
@@ -183,7 +188,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 .prof-card .pc-name{font-family:'Fredoka One',sans-serif;font-size:1rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .prof-card .pc-grade{font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;}
 .pc-grade.sec1{background:#EEF0FF;color:#5B4FCF;}
-.pc-grade.pri5{background:#EDFAEB;color:#1B9E78;}
+.pc-grade.pri1,.pc-grade.pri2,.pc-grade.pri3,.pc-grade.pri4,.pc-grade.pri5,.pc-grade.pri6{background:#EDFAEB;color:#1B9E78;}
 .pc-grade.both{background:#FFF5EB;color:#b06000;}
 .prof-card .pc-stat{font-size:.72rem;color:var(--muted);font-weight:700;}
 .prof-card .pc-del{position:absolute;top:6px;right:8px;background:none;border:none;font-size:.85rem;color:#ccc;cursor:pointer;padding:2px;}
@@ -202,11 +207,11 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 .ava-btn:hover,.ava-btn.sel{border-color:#5B4FCF;background:#EEF0FF;}
 #padd-name{width:100%;padding:10px 14px;border:2px solid #e0e0ee;border-radius:12px;font-size:.95rem;font-family:'Nunito',sans-serif;font-weight:700;margin-bottom:14px;}
 #padd-name:focus{outline:none;border-color:#5B4FCF;}
-.grade-row{display:flex;gap:8px;margin-bottom:16px;}
+.grade-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
 .grade-opt{flex:1;padding:9px 4px;border-radius:12px;border:2px solid #eee;background:#fafafa;font-family:'Fredoka One',sans-serif;font-size:.85rem;cursor:pointer;text-align:center;transition:all .18s;}
 .grade-opt:hover{border-color:#ccc;}
 .grade-opt.sel-sec1{border-color:#5B4FCF;background:#EEF0FF;color:#5B4FCF;}
-.grade-opt.sel-pri5{border-color:#1B9E78;background:#EDFAEB;color:#1B9E78;}
+.grade-opt[class*="sel-pri"]{border-color:#1B9E78;background:#EDFAEB;color:#1B9E78;}
 .grade-opt.sel-both{border-color:#F4A261;background:#FFF5EB;color:#b06000;}
 .padd-row{display:flex;gap:8px;margin-top:4px;}
 .padd-row button{flex:1;padding:11px;border-radius:12px;border:none;font-family:'Fredoka One',sans-serif;font-size:1rem;cursor:pointer;}
@@ -246,7 +251,15 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 
 <div class="tabs">
   <button class="tab-btn sec1 active" onclick="showTab('sec1')">&#x1F392; Secondaire 1 (13 ans)</button>
-  <button class="tab-btn pri5"        onclick="showTab('pri5')">&#x2B50; 5e Ann&#233;e (11 ans)</button>
+  <button class="tab-btn pri"         onclick="showTab('pri')">&#x2B50; Primaire</button>
+</div>
+<div class="pri-subtabs" id="pri-subtabs">
+  <button class="subtab-btn active" id="pst-pri1" onclick="showPriGrade('pri1')">1re ann&#233;e</button>
+  <button class="subtab-btn" id="pst-pri2" onclick="showPriGrade('pri2')">2e ann&#233;e</button>
+  <button class="subtab-btn" id="pst-pri3" onclick="showPriGrade('pri3')">3e ann&#233;e</button>
+  <button class="subtab-btn" id="pst-pri4" onclick="showPriGrade('pri4')">4e ann&#233;e</button>
+  <button class="subtab-btn" id="pst-pri5" onclick="showPriGrade('pri5')">5e ann&#233;e</button>
+  <button class="subtab-btn" id="pst-pri6" onclick="showPriGrade('pri6')">6e ann&#233;e</button>
 </div>
 
 <div id="sec1" class="grade-panel visible">
@@ -257,12 +270,12 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="subjects-grid" id="sec1-grid"></div>
 </div>
 
-<div id="pri5" class="grade-panel">
-  <div class="grade-header pri5">
-    <div class="emo">&#x2B50;</div>
-    <div><h2>5e Ann&#233;e du primaire</h2><p>Programme de formation de l&#39;&#233;cole qu&#233;b&#233;coise &mdash; Enseignement primaire</p></div>
+<div id="pri" class="grade-panel">
+  <div class="grade-header pri" id="pri-header">
+    <div class="emo" id="pri-emo">&#x2B50;</div>
+    <div><h2 id="pri-h2">1re ann&#233;e du primaire</h2><p>Programme de formation de l&#39;&#233;cole qu&#233;b&#233;coise &mdash; Enseignement primaire</p></div>
   </div>
-  <div class="subjects-grid" id="pri5-grid"></div>
+  <div class="subjects-grid" id="pri-grid"></div>
 </div>
 
 <p style="text-align:center;font-size:.75rem;color:var(--muted);margin:24px 16px 0;font-weight:600;">
@@ -349,9 +362,17 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
     <input type="text" id="padd-name" placeholder="Ex. : Emma" maxlength="20">
     <span class="padd-lbl">Niveau</span>
     <div class="grade-row">
-      <button class="grade-opt" data-g="sec1" onclick="selectGrade(this)">&#x1F392; Sec. 1</button>
-      <button class="grade-opt" data-g="pri5" onclick="selectGrade(this)">&#x2B50; 5e Ann&#233;e</button>
+      <button class="grade-opt" data-g="sec1" onclick="selectGrade(this)">&#x1F392; Sec.&nbsp;1</button>
       <button class="grade-opt" data-g="both" onclick="selectGrade(this)">&#x1F4DA; Les deux</button>
+    </div>
+    <div style="font-size:.72rem;font-weight:800;color:var(--muted);margin:-8px 0 6px;letter-spacing:.4px;">PRIMAIRE</div>
+    <div class="grade-row">
+      <button class="grade-opt" data-g="pri1" onclick="selectGrade(this)">1re</button>
+      <button class="grade-opt" data-g="pri2" onclick="selectGrade(this)">2e</button>
+      <button class="grade-opt" data-g="pri3" onclick="selectGrade(this)">3e</button>
+      <button class="grade-opt" data-g="pri4" onclick="selectGrade(this)">4e</button>
+      <button class="grade-opt" data-g="pri5" onclick="selectGrade(this)">5e</button>
+      <button class="grade-opt" data-g="pri6" onclick="selectGrade(this)">6e</button>
     </div>
     <div class="padd-row">
       <button id="btn-padd-cancel" onclick="closeAddProfile()">Annuler</button>
@@ -390,6 +411,110 @@ var SEC1=[
    comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9 culturelle','D\u00e9velopper son appartenance'],
    tops:['Identit\u00e9 qu\u00e9b\u00e9coise','Valeurs d\u00e9mocratiques','Diversit\u00e9 culturelle','Enjeux sociaux','Dialogue \u00e9thique','Droits & responsabilit\u00e9s']},
 ];
+var PRI1=[
+  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~9h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
+   comps:['Lire des textes simples','\u00c9crire de courts textes','Communiquer oralement'],
+   tops:['Conscience phonologique','Lecture d\u00e9butante','\u00c9criture de base','Sons & lettres','Expression orale','Compr\u00e9hension','Calligraphie']},
+  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~6h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
+   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
+   tops:['Nombres 0\u2013100','Compter & suites','Addition simple','Soustraction simple','G\u00e9om\u00e9trie de base','Mesures simples','Donn\u00e9es']},
+  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~1h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
+   comps:['Explorer le monde','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
+   tops:['Mon corps','Les animaux','Les plantes','Mati\u00e8re & objets','Exp\u00e9riences simples','Environnement','Saisons']},
+  {ico:'&#127757;',t:'Univers social',sub:'G\u00e9ographie & histoire',hrs:'~1h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
+   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['Ma famille','Mon \u00e9cole','Mon quartier','Rep\u00e8res simples','Routines quotidiennes','Besoins & d\u00e9sirs']},
+  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~1h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
+   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension'],
+   tops:['Salutations','Couleurs & chiffres','Mots simples','Chansons','Corps humain','Salle de classe']},
+  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
+   comps:['Cr\u00e9er des images personnelles','Appr\u00e9cier des \u0153uvres'],
+   tops:['Dessin','Peinture','Collage','Couleurs primaires','Formes','Textures']},
+  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
+   comps:['Agir dans divers contextes physiques','Interagir','Adopter un mode de vie sain'],
+   tops:['Mouvements de base','Jeux simples','\u00c9quilibre','Locomotion','Coordination','Hygi\u00e8ne de base']},
+  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
+   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['\u00c8gles de classe','Respect','Partage','Diff\u00e9rences','Entraide','F\u00eates qu\u00e9b\u00e9coises']},
+];
+var PRI2=[
+  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~9h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
+   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes courts','Communiquer oralement'],
+   tops:['Lecture courante','R\u00e9daction courte','Grammaire de base','Conjugaison pr\u00e9sent','Orthographe usuelle','Vocabulaire','Compr\u00e9hension']},
+  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~6h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
+   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
+   tops:['Nombres 0\u2013200','Addition & soustraction','Multiplication initiation','G\u00e9om\u00e9trie planes','Mesures','Suites & r\u00e8gles','Donn\u00e9es']},
+  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~1h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
+   comps:['Explorer le monde','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
+   tops:['Corps humain','Animaux & habitat','Mati\u00e8re & \u00e9tats','Exp\u00e9riences','Forces simples','Environnement','Cycle de vie']},
+  {ico:'&#127757;',t:'Univers social',sub:'G\u00e9ographie & histoire',hrs:'~1h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
+   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['Ma communaut\u00e9','Besoins & m\u00e9tiers','Cartes simples','Peuples du monde','Hier & aujourd\'hui','Droits d\'enfants']},
+  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~1h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
+   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
+   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
+  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
+   comps:['Cr\u00e9er des images personnelles','Appr\u00e9cier des \u0153uvres'],
+   tops:['Arts plastiques','Dessin & couleurs','Collage','Rythme musical','Jeux dramatiques','Appr\u00e9ciation']},
+  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
+   comps:['Agir dans divers contextes physiques','Interagir','Adopter un mode de vie sain'],
+   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','S\u00e9curit\u00e9','Saine alimentation','Hygi\u00e8ne personnelle']},
+  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
+   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['Ma communaut\u00e9','Traditions du Qu\u00e9bec','Respect des r\u00e8gles','Diversit\u00e9 culturelle','Valeurs partag\u00e9es','Dialogue']},
+];
+var PRI3=[
+  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
+   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
+   tops:['Lecture','R\u00e9daction','Grammaire','Conjugaison','Orthographe','Vocabulaire','Compr\u00e9hension']},
+  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
+   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
+   tops:['Nombres 0\u20131000','Multiplication & division','Fractions simples','G\u00e9om\u00e9trie','Mesures','Probabilit\u00e9s','Statistiques']},
+  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
+   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
+   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces simples','Transformations','Construction','Exp\u00e9riences']},
+  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
+   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Territoires','Droits & citoyennet\u00e9']},
+  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
+   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
+   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
+  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
+   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres'],
+   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Musique','Jeux dramatiques','Appr\u00e9ciation culturelle']},
+  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
+   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
+   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
+  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
+   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9','D\u00e9velopper son appartenance'],
+   tops:['Traditions du Qu\u00e9bec','F\u00eates & cultures','Valeurs partag\u00e9es','Respect des diff\u00e9rences','R\u00e8gles de vie','Dialogue']},
+];
+var PRI4=[
+  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
+   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
+   tops:['Lecture','R\u00e9daction','Orthographe','Grammaire','Conjugaison','Vocabulaire','Compr\u00e9hension']},
+  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
+   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
+   tops:['Nombres naturels','Fractions & d\u00e9cimaux','Op\u00e9rations (+\u2212\u00d7\u00f7)','G\u00e9om\u00e9trie','Mesures','Probabilit\u00e9s','Statistiques']},
+  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
+   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
+   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces simples','Transformations','Projets de construction','Exp\u00e9riences']},
+  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
+   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','R\u00e9gime britannique','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Droits & citoyennet\u00e9']},
+  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
+   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
+   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
+  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
+   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres d\'art'],
+   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Art num\u00e9rique','Musique','Appr\u00e9ciation culturelle']},
+  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
+   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
+   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
+  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
+   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9','D\u00e9velopper son appartenance'],
+   tops:['Traditions du Qu\u00e9bec','F\u00eates & cultures','Valeurs partag\u00e9es','Respect des diff\u00e9rences','R\u00e8gles de vie','Dialogue']},
+];
 var PRI5=[
   {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
    comps:['Lire des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
@@ -416,6 +541,37 @@ var PRI5=[
    comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9','D\u00e9velopper son appartenance'],
    tops:['Traditions du Qu\u00e9bec','F\u00eates & cultures','Valeurs partag\u00e9es','Respect des diff\u00e9rences','R\u00e8gles de vie','Dialogue']},
 ];
+
+var PRI6=[
+  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
+   comps:['Lire et appr\u00e9cier des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
+   tops:['Lecture','R\u00e9daction','Grammaire avanc\u00e9e','Conjugaison','Orthographe','Analyse de texte','Expression orale']},
+  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
+   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
+   tops:['Nombres naturels & entiers','Fractions & d\u00e9cimaux','Op\u00e9rations complexes','G\u00e9om\u00e9trie','Mesures & unit\u00e9s','Probabilit\u00e9s','Statistiques']},
+  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
+   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
+   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces & mouvements','Transformations','Projets techno','Exp\u00e9riences scientifiques']},
+  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
+   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
+   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','R\u00e9gime britannique','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Droits & citoyennet\u00e9']},
+  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
+   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension des textes','Produire des textes vari\u00e9s'],
+   tops:['Listening & speaking','Reading comprehension','Writing','Vocabulary','Grammar','Media texts']},
+  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
+   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres d\'art'],
+   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Art num\u00e9rique','Musique','Appr\u00e9ciation culturelle']},
+  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
+   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
+   tops:['Sports collectifs','Activit\u00e9s rythmiques','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
+  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
+   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9 culturelle','D\u00e9velopper son appartenance'],
+   tops:['Identit\u00e9 qu\u00e9b\u00e9coise','Valeurs d\u00e9mocratiques','Diversit\u00e9 culturelle','Enjeux sociaux','Dialogue \u00e9thique','Droits & responsabilit\u00e9s']},
+];
+var PRIDATA={pri1:PRI1,pri2:PRI2,pri3:PRI3,pri4:PRI4,pri5:PRI5,pri6:PRI6};
+var PRI_LABELS={pri1:'1re ann\u00e9e',pri2:'2e ann\u00e9e',pri3:'3e ann\u00e9e',pri4:'4e ann\u00e9e',pri5:'5e ann\u00e9e',pri6:'6e ann\u00e9e'};
+var PRI_AGES={pri1:'6 ans',pri2:'7 ans',pri3:'8 ans',pri4:'9 ans',pri5:'10 ans',pri6:'11 ans'};
+var activePriGrade = 'pri1';
 
 // ---- STATS ------------------------------------------------------
 var stats = JSON.parse(localStorage.getItem('dv-stats') || '{"total":0,"ok":0,"wrong":0,"streak":0,"best":0}');
@@ -608,7 +764,7 @@ function exportQuestionsDB(){
 // ---- HYBRID QUIZ START ------------------------------------------
 function startQuiz(key,si,grade,e){
   e.stopPropagation();
-  var data=grade==='sec1'?SEC1:PRI5, s=data[si];
+  var data=grade==='sec1'?SEC1:(PRIDATA[grade]||PRI5), s=data[si];
   var sel=[].slice.call(document.querySelectorAll('#chips-'+key+' .sel'));
   var topics=sel.length?sel.map(function(c){return c.dataset.t;}):s.tops;
   var nq=qCounts[key]||10;
@@ -668,7 +824,8 @@ function showLoad(){
 function generate(s, topics, grade, nq){
   var apiKey=getKey();
   if(!apiKey){ openAkModal(); return Promise.reject(new Error('NO_KEY')); }
-  var glabel=grade==='sec1'?'Secondaire 1 (13 ans, Quebec, Canada)':'5e annee du primaire (11 ans, Quebec, Canada)';
+  var _gradeNames={sec1:'Secondaire 1 (13 ans, Quebec, Canada)',pri1:'1re annee du primaire (6 ans, Quebec, Canada)',pri2:'2e annee du primaire (7 ans, Quebec, Canada)',pri3:'3e annee du primaire (8 ans, Quebec, Canada)',pri4:'4e annee du primaire (9 ans, Quebec, Canada)',pri5:'5e annee du primaire (10 ans, Quebec, Canada)',pri6:'6e annee du primaire (11 ans, Quebec, Canada)'};
+  var glabel=_gradeNames[grade]||grade;
   nq = nq||10;
   var mcqN=Math.round(nq*0.7), openN=nq-mcqN;
   var prompt='Tu es un enseignant quebecois experimente. Genere exactement '+nq+' questions de revision en francais pour un eleve de '
@@ -897,6 +1054,25 @@ function showTab(id){
   [].slice.call(document.querySelectorAll('.tab-btn')).forEach(function(b){b.classList.remove('active');});
   document.getElementById(id).classList.add('visible');
   document.querySelector('.tab-btn.'+id).classList.add('active');
+  var subtabs=document.getElementById('pri-subtabs');
+  if(id==='pri'){
+    subtabs.classList.add('visible');
+    showPriGrade(activePriGrade);
+  } else {
+    subtabs.classList.remove('visible');
+  }
+}
+function showPriGrade(g){
+  activePriGrade=g;
+  // update sub-tab buttons
+  [].slice.call(document.querySelectorAll('.subtab-btn')).forEach(function(b){b.classList.remove('active');});
+  var btn=document.getElementById('pst-'+g);
+  if(btn) btn.classList.add('active');
+  // update panel header
+  document.getElementById('pri-h2').textContent=PRI_LABELS[g]+' du primaire';
+  // rebuild grid
+  document.getElementById('pri-grid').innerHTML='';
+  buildCards(PRIDATA[g],'pri-grid',g);
 }
 function updateClock(){ document.getElementById('clock').textContent=new Date().toLocaleTimeString('fr-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
 setInterval(updateClock,1000); updateClock();
@@ -929,7 +1105,8 @@ function renderProfileGrid() {
     var p = profiles[id];
     var avg = ProfileManager.avgScore(p);
     var sess = ProfileManager.totalSessions(p);
-    var gradeLabel = p.grade==='sec1'?'Sec. 1':p.grade==='pri5'?'5e Ann\u00e9e':'Les deux';
+    var _gl={sec1:'Sec. 1',pri1:'1re',pri2:'2e',pri3:'3e',pri4:'4e',pri5:'5e',pri6:'6e',both:'Les deux'};
+    var gradeLabel=_gl[p.grade]||p.grade;
     html +=
       '<div class="prof-card" onclick="selectProfile(\''+id+'\')">'
         +'<button class="pc-del" onclick="deleteProfile(event,\''+id+'\')">&#x2715;</button>'
@@ -1052,7 +1229,7 @@ resetStats = function() {
 // ---- INIT -------------------------------------------------------
 updateBar(); updateAkBar();
 buildCards(SEC1,'sec1-grid','sec1');
-buildCards(PRI5,'pri5-grid','pri5');
+showPriGrade('pri1');
 
 // Profile init — sync from cloud, then load active profile or show selector
 (function initProfiles() {
