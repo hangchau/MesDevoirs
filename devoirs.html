@@ -146,18 +146,29 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 .btn-retry{padding:12px 28px;border-radius:30px;border:none;color:#fff;font-family:'Fredoka One',sans-serif;font-size:1.1rem;cursor:pointer;transition:all .18s;}
 .btn-retry:hover{opacity:.88;transform:scale(.98);}
 .btn-back{width:100%;padding:11px;border-radius:12px;border:none;background:#f0f0f8;color:var(--muted);font-family:'Fredoka One',sans-serif;font-size:1rem;cursor:pointer;margin-top:10px;}
-#pwd-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.55);z-index:2000;align-items:center;justify-content:center;}
-#pwd-ov.open{display:flex;}
-#pwd-box{background:#fff;border-radius:20px;padding:28px;width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.22);}
-#pwd-box h3{font-family:'Fredoka One',sans-serif;font-size:1.3rem;margin-bottom:6px;}
-#pwd-box p{font-size:.85rem;color:var(--muted);font-weight:600;margin-bottom:14px;}
-#pwd-in{width:100%;padding:10px 14px;border:2px solid #e0e0ee;border-radius:10px;font-size:1.2rem;text-align:center;letter-spacing:4px;font-family:'Nunito',sans-serif;font-weight:800;}
-#pwd-in:focus{outline:none;border-color:#5B4FCF;}
-#pwd-err{color:#E63946;font-size:.82rem;font-weight:800;margin-top:6px;min-height:16px;}
-.pwd-row{display:flex;gap:8px;margin-top:14px;}
-.pwd-row button{flex:1;padding:10px;border-radius:12px;border:none;font-family:'Fredoka One',sans-serif;font-size:.95rem;cursor:pointer;}
-#btn-pwok{background:#5B4FCF;color:#fff;}
-#btn-pwcancel{background:#f0f0f8;color:var(--muted);}
+/* Parent dashboard */
+#parent-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.65);z-index:3000;overflow-y:auto;padding:20px;}
+#parent-ov.open{display:block;}
+#parent-box{background:#fff;border-radius:26px;width:100%;max-width:920px;margin:0 auto;padding:28px 28px 32px;box-shadow:0 24px 70px rgba(0,0,0,.28);}
+#parent-hd{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+#parent-hd h2{font-family:'Fredoka One',sans-serif;font-size:1.5rem;flex:1;}
+.parent-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:4px 8px;border-radius:8px;}
+.parent-close:hover{background:#f0f0f8;}
+#parent-ptabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.ptab{font-family:'Fredoka One',sans-serif;padding:8px 16px;border-radius:20px;border:2px solid #eee;background:#fafafa;cursor:pointer;font-size:.9rem;transition:all .18s;}
+.ptab:hover{border-color:#ccc;}
+.ptab.active{background:#5B4FCF;color:#fff;border-color:#5B4FCF;}
+.par-profile-hd{display:flex;align-items:center;gap:14px;padding:16px 18px;background:#fafafa;border-radius:16px;margin-bottom:16px;}
+.par-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;}
+.par-subj{background:#fafafa;border-radius:14px;padding:14px 16px;border:2px solid #eee;transition:border-color .2s;}
+.par-subj-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.par-subj-hd strong{font-size:.88rem;flex:1;}
+.par-sc{font-family:'Fredoka One',sans-serif;font-size:1.15rem;}
+.par-row{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;padding:3px 0;border-bottom:1px solid #f0f0f0;}
+.par-row:last-child{border-bottom:none;}
+.par-subtops{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.par-pill{font-size:.7rem;font-weight:800;padding:2px 9px;border-radius:10px;}
+.par-pill.ok{background:#EDFAEB;color:#0A6B51;}.par-pill.mid{background:#FFF5EB;color:#b06000;}.par-pill.bad{background:#FFF0F1;color:#E63946;}
 #ak-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.6);z-index:2000;align-items:center;justify-content:center;padding:20px;}
 #ak-ov.open{display:flex;}
 #ak-box{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
@@ -244,6 +255,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="stat-pill"><span class="dot dw"></span>Erreurs&nbsp;: <strong id="st-wrong">0</strong></div>
   <div class="stat-pill"><span class="dot ds"></span>S&#233;rie&nbsp;: <strong id="st-streak">0</strong></div>
   <button id="prof-pill" onclick="openProfileSelector()">&#x1F464; Choisir profil</button>
+  <button id="btn-parent" onclick="openParent()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:30px;font-size:.82rem;font-weight:800;background:#EEF0FF;color:#5B4FCF;border:1.5px solid #9B91E0;cursor:pointer;box-shadow:var(--shadow);">&#x1F4CA; Parents</button>
   <button id="btn-rst" onclick="resetStats()">&#x1F5D1; R&#233;init.</button>
   <button id="btn-export" class="stat-pill" onclick="exportQuestionsDB()" style="cursor:pointer;border:1.5px solid #1B9E78;background:#EDFAEB;color:#0A6B51;font-size:.78rem;font-weight:800;">&#x1F4E5; Exporter BD</button>
   <div id="ak-bar"></div>
@@ -303,17 +315,15 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 </div>
 
 <!-- PASSWORD MODAL -->
-<div id="pwd-ov">
-  <div id="pwd-box">
-    <div style="font-size:2rem;margin-bottom:8px;">&#x1F512;</div>
-    <h3>Solution prot&#233;g&#233;e</h3>
-    <p>Mot de passe parent requis pour voir la solution.</p>
-    <input type="password" id="pwd-in" placeholder="&bull;&bull;&bull;&bull;" maxlength="10">
-    <div id="pwd-err"></div>
-    <div class="pwd-row">
-      <button id="btn-pwcancel" onclick="closePwd()">Annuler</button>
-      <button id="btn-pwok"     onclick="checkPwd()">Confirmer</button>
+<!-- PARENT DASHBOARD -->
+<div id="parent-ov">
+  <div id="parent-box">
+    <div id="parent-hd">
+      <h2>&#x1F4CA; Tableau de bord &mdash; Parents</h2>
+      <button class="parent-close" onclick="closeParent()">&#x2715;</button>
     </div>
+    <div id="parent-ptabs"></div>
+    <div id="parent-content"></div>
   </div>
 </div>
 
@@ -591,17 +601,21 @@ function resetStats(){
   document.querySelectorAll('.subj-hist').forEach(function(e){e.remove();});
   toast('Statistiques r\u00e9initialis\u00e9es');
 }
+var qSubtopics={};
 function recAns(ok){
   stats.total++;
   if(ok){stats.ok++;stats.streak++;stats.best=Math.max(stats.best,stats.streak);}
   else{stats.wrong++;stats.streak=0;}
+  var qsub=CQ.qs&&CQ.qs[qIdx]&&CQ.qs[qIdx].subtopic;
+  if(qsub){if(!qSubtopics[qsub])qSubtopics[qsub]={ok:0,total:0};qSubtopics[qsub].total++;if(ok)qSubtopics[qsub].ok++;}
   saveAll(); updateBar();
 }
 function recQuiz(key,score,tot){
   if(!hist[key]) hist[key]=[];
   var d=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  hist[key].unshift({score:score,total:tot,d:d});
+  hist[key].unshift({score:score,total:tot,d:d,sub:qSubtopics});
   if(hist[key].length>5) hist[key].pop();
+  qSubtopics={};
   saveAll();
 }
 function histHtml(h){
@@ -769,7 +783,7 @@ function startQuiz(key,si,grade,e){
   var topics=sel.length?sel.map(function(c){return c.dataset.t;}):s.tops;
   var nq=qCounts[key]||10;
   CQ={key:key,si:si,grade:grade,s:s,topics:topics,nq:nq};
-  qIdx=0; qAns=false; qScore=0;
+  qIdx=0; qAns=false; qScore=0; qSubtopics={};
   document.getElementById('qm-ico').innerHTML=s.ico;
   document.getElementById('qm-ico').style.background=s.c;
   document.querySelector('#qm-ttl h2').textContent=s.t;
@@ -902,7 +916,7 @@ function renderMCQ(q,i){
     +'<div class="q-choices">'+opts+'</div>'
     +'<div class="q-fb" id="fb-'+i+'"></div>'
     +'<div class="sol-wrap">'
-      +'<button class="btn-sol" id="bsol-'+i+'" onclick="reqSol('+i+')" style="display:none">&#x1F512; Voir la solution (parent)</button>'
+      +'<button class="btn-sol" id="bsol-'+i+'" onclick="revealSol('+i+')" style="display:none">&#x1F4A1; Voir la solution</button>'
       +'<div class="sol-box" id="sol-'+i+'">&#x1F4A1; '+q.solution+'</div>'
     +'</div>'
     +'<div class="q-nav" id="nav-'+i+'" style="display:none">'
@@ -920,7 +934,7 @@ function renderOpen(q,i){
     +'<button class="btn-sub" onclick="subOpen('+i+')" style="background:'+CQ.s.c+'">Valider ma r\u00e9ponse</button>'
     +'<div class="q-fb" id="fb-'+i+'"></div>'
     +'<div class="sol-wrap">'
-      +'<button class="btn-sol" id="bsol-'+i+'" onclick="reqSol('+i+')" style="display:none">&#x1F512; Voir la solution (parent)</button>'
+      +'<button class="btn-sol" id="bsol-'+i+'" onclick="revealSol('+i+')" style="display:none">&#x1F4A1; Voir la solution</button>'
       +'<div class="sol-box" id="sol-'+i+'">&#x1F4A1; '+q.solution+'<br><br><strong>R\u00e9ponse mod\u00e8le\u00a0:</strong> '+q.answer+'</div>'
     +'</div>'
     +'<div class="q-nav" id="nav-'+i+'" style="display:none">'
@@ -1018,35 +1032,119 @@ function retryQuiz(){
   }
 }
 
-// ---- PASSWORD ---------------------------------------------------
-var pendingSol=null, pwOk=false;
-function reqSol(i){
-  if(pwOk){revealSol(i);return;}
-  pendingSol=i;
-  document.getElementById('pwd-in').value='';
-  document.getElementById('pwd-err').textContent='';
-  document.getElementById('pwd-ov').classList.add('open');
-  setTimeout(function(){document.getElementById('pwd-in').focus();},60);
-}
-function closePwd(){ document.getElementById('pwd-ov').classList.remove('open'); pendingSol=null; }
-function checkPwd(){
-  if(document.getElementById('pwd-in').value==='9394'){
-    pwOk=true; closePwd();
-    if(pendingSol!==null) revealSol(pendingSol);
-    toast('\ud83d\udd13 Solutions d\u00e9verrouill\u00e9es pour cette session');
-  } else {
-    document.getElementById('pwd-err').textContent='Mot de passe incorrect.';
-    document.getElementById('pwd-in').value='';
-    document.getElementById('pwd-in').focus();
-  }
-}
+// ---- SOLUTION ---------------------------------------------------
 function revealSol(i){
   var sol=document.getElementById('sol-'+i), btn=document.getElementById('bsol-'+i);
   if(sol) sol.classList.add('show');
   if(btn) btn.style.display='none';
 }
-document.getElementById('pwd-in').addEventListener('keydown',function(e){if(e.key==='Enter')checkPwd();});
-document.getElementById('pwd-ov').addEventListener('click',function(e){if(e.target===document.getElementById('pwd-ov'))closePwd();});
+
+// ---- PARENT DASHBOARD -------------------------------------------
+var _GRADE_FULL={sec1:'Secondaire 1',pri1:'1re ann\u00e9e',pri2:'2e ann\u00e9e',pri3:'3e ann\u00e9e',pri4:'4e ann\u00e9e',pri5:'5e ann\u00e9e',pri6:'6e ann\u00e9e',both:'Tous niveaux'};
+
+function _gradeDataFor(grade){
+  if(grade==='sec1') return SEC1;
+  if(PRIDATA[grade]) return PRIDATA[grade];
+  return null;
+}
+
+function openParent(){
+  var profiles=ProfileManager.getAll();
+  var keys=Object.keys(profiles);
+  if(!keys.length){toast('\u2139\ufe0f Aucun profil cr\u00e9\u00e9');return;}
+  var tabs=keys.map(function(id){
+    var p=profiles[id];
+    return '<button class="ptab" data-id="'+id+'" onclick="renderParentProfile(\''+id+'\')">'+p.avatar+' '+p.name+'</button>';
+  }).join('');
+  document.getElementById('parent-ptabs').innerHTML=tabs;
+  document.getElementById('parent-ov').classList.add('open');
+  var activeId=ProfileManager.getActiveId()||keys[0];
+  renderParentProfile(activeId);
+}
+function closeParent(){ document.getElementById('parent-ov').classList.remove('open'); }
+document.getElementById('parent-ov').addEventListener('click',function(e){if(e.target===this)closeParent();});
+
+function renderParentProfile(id){
+  var profiles=ProfileManager.getAll();
+  var p=profiles[id]; if(!p) return;
+  document.querySelectorAll('.ptab').forEach(function(b){b.classList.toggle('active',b.dataset.id===id);});
+  var phist=p.hist||{};
+  var data=_gradeDataFor(p.grade);
+
+  // overall avg
+  var sc=0,cnt=0;
+  Object.values(phist).forEach(function(arr){arr.forEach(function(r){sc+=Math.round(r.score/r.total*100);cnt++;});});
+  var avg=cnt?Math.round(sc/cnt):null;
+  var avgCol=avg===null?'var(--muted)':avg>=75?'#1B9E78':avg>=50?'#F4A261':'#E63946';
+
+  var html='<div class="par-profile-hd">'
+    +'<div style="font-size:2.8rem">'+p.avatar+'</div>'
+    +'<div><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.2rem">'+p.name+'</div>'
+    +'<div style="font-size:.8rem;font-weight:700;color:var(--muted)">'+(_GRADE_FULL[p.grade]||p.grade)+'</div></div>'
+    +(avg!==null?'<div style="margin-left:auto;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:2rem;color:'+avgCol+'">'+avg+'%</div><div style="font-size:.7rem;font-weight:800;color:var(--muted)">moyenne g\u00e9n\u00e9rale</div></div>':'')
+    +'</div>';
+
+  if(!data){
+    // "both" or unknown: show all available sessions from hist
+    html+='<p style="color:var(--muted);font-weight:700;text-align:center;padding:24px">S\u00e9lectionnez un niveau sp\u00e9cifique dans le profil pour voir la d\u00e9composition par mati\u00e8re.</p>';
+    var allKeys=Object.keys(phist);
+    if(allKeys.length){
+      html+='<div class="par-grid">';
+      allKeys.forEach(function(key){
+        var sessions=phist[key];
+        if(!sessions||!sessions.length) return;
+        html+=_renderParSubj(key,sessions,null);
+      });
+      html+='</div>';
+    }
+  } else {
+    html+='<div class="par-grid">';
+    data.forEach(function(s,i){
+      var key=p.grade+'_'+i;
+      var sessions=phist[key]||[];
+      html+=_renderParSubj(s.t,sessions,s);
+    });
+    html+='</div>';
+  }
+  document.getElementById('parent-content').innerHTML=html;
+}
+
+function _renderParSubj(label,sessions,subjectDef){
+  var ico=subjectDef?subjectDef.ico:'&#128218;';
+  var lastPct=sessions.length?Math.round(sessions[0].score/sessions[0].total*100):null;
+  var scoreCol=lastPct===null?'var(--muted)':lastPct>=75?'#1B9E78':lastPct>=50?'#F4A261':'#E63946';
+  var borderCol=lastPct===null?'#eee':lastPct>=75?'#6BCFB0':lastPct>=50?'#FACC99':'#F4A3A8';
+
+  var h='<div class="par-subj" style="border-color:'+borderCol+'">'
+    +'<div class="par-subj-hd">'
+    +'<span style="font-size:1.3rem">'+ico+'</span>'
+    +'<strong>'+label+'</strong>'
+    +(lastPct!==null?'<span class="par-sc" style="color:'+scoreCol+'">'+lastPct+'%</span>':'<span class="par-sc" style="color:var(--muted)">--</span>')
+    +'</div>';
+
+  if(sessions.length){
+    sessions.forEach(function(r){
+      var pct=Math.round(r.score/r.total*100);
+      var col=pct>=75?'#1B9E78':pct>=50?'#F4A261':'#E63946';
+      h+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+r.score+'/'+r.total+' \u00b7 '+pct+'%</span></div>';
+    });
+    // subtopic pills from most recent session
+    var sub=sessions[0].sub;
+    if(sub&&Object.keys(sub).length){
+      h+='<div class="par-subtops">';
+      Object.keys(sub).forEach(function(t){
+        var d=sub[t];
+        var pct=Math.round(d.ok/d.total*100);
+        var cls=pct>=75?'ok':pct>=50?'mid':'bad';
+        h+='<span class="par-pill '+cls+'">'+t+' '+d.ok+'/'+d.total+'</span>';
+      });
+      h+='</div>';
+    }
+  } else {
+    h+='<div style="font-size:.78rem;color:var(--muted);font-weight:700;padding:6px 0;text-align:center">Aucune session</div>';
+  }
+  return h+'</div>';
+}
 
 // ---- MISC -------------------------------------------------------
 function showTab(id){
