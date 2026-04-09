@@ -169,6 +169,10 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 .par-subtops{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
 .par-pill{font-size:.7rem;font-weight:800;padding:2px 9px;border-radius:10px;}
 .par-pill.ok{background:#EDFAEB;color:#0A6B51;}.par-pill.mid{background:#FFF5EB;color:#b06000;}.par-pill.bad{background:#FFF0F1;color:#E63946;}
+/* Adaptive level badges */
+.lv-badge{display:inline-flex;align-items:center;gap:3px;font-size:.68rem;font-weight:800;padding:2px 7px;border-radius:8px;}
+.lv-facile{background:#EDFAEB;color:#0A6B51;}.lv-moyen{background:#FFF5EB;color:#b06000;}.lv-difficile{background:#FFF0F1;color:#E63946;}
+.lv-warn{font-size:.68rem;font-weight:800;margin-left:4px;}
 #ak-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.6);z-index:2000;align-items:center;justify-content:center;padding:20px;}
 #ak-ov.open{display:flex;}
 #ak-box{background:#fff;border-radius:22px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
@@ -618,6 +622,41 @@ function recQuiz(key,score,tot){
   qSubtopics={};
   saveAll();
 }
+// ---- ADAPTIVE DIFFICULTY ----------------------------------------
+var LV_NEXT={facile:'moyen',moyen:'difficile'};
+var LV_PREV={difficile:'moyen',moyen:'facile'};
+var LV_ICON={facile:'🟢',moyen:'🟡',difficile:'🔴'};
+function getAdaptiveLevel(key){ return localStorage.getItem('dv-level-'+key)||'moyen'; }
+function updateAdaptiveLevel(key){
+  var h=hist[key]||[]; if(h.length<3) return;
+  var last5=h.slice(0,5);
+  var avg=last5.reduce(function(s,r){return s+r.score/r.total*100;},0)/last5.length;
+  var cur=getAdaptiveLevel(key), nxt=cur;
+  if(avg>90&&LV_NEXT[cur]) nxt=LV_NEXT[cur];
+  else if(avg<60&&LV_PREV[cur]) nxt=LV_PREV[cur];
+  if(nxt!==cur){
+    localStorage.setItem('dv-level-'+key,nxt);
+    var arrow=nxt===LV_NEXT[cur]?'\u2197':'\u2198';
+    toast(arrow+' Niveau \u2192 <strong>'+nxt+'</strong> !');
+    var bdg=document.getElementById('lvbdg-'+key);
+    if(bdg) bdg.innerHTML=getLvBadgeHtml(key);
+  }
+}
+function getLvAvg(key){
+  var h=hist[key]||[]; if(!h.length) return null;
+  var s5=h.slice(0,5);
+  return Math.round(s5.reduce(function(s,r){return s+r.score/r.total*100;},0)/s5.length);
+}
+function getLvBadgeHtml(key){
+  var lv=getAdaptiveLevel(key), avg=getLvAvg(key), h=hist[key]||[];
+  var warn='';
+  if(h.length>=3&&avg!==null){
+    if(avg>90&&lv!=='difficile') warn='<span class="lv-warn">\u2197 passage \u00e0 '+LV_NEXT[lv]+'</span>';
+    else if(avg<60&&lv!=='facile') warn='<span class="lv-warn">\u2198 retour \u00e0 '+LV_PREV[lv]+'</span>';
+  }
+  var avgTxt=avg!==null?'<span style="font-size:.68rem;font-weight:700;color:var(--muted);margin-left:6px;">moy. '+avg+'%</span>':'';
+  return '<span class="lv-badge lv-'+lv+'">'+LV_ICON[lv]+' '+lv.charAt(0).toUpperCase()+lv.slice(1)+'</span>'+warn+avgTxt;
+}
 function histHtml(h){
   if(!h||!h.length) return '';
   var rows=h.map(function(r){
@@ -643,7 +682,7 @@ function buildCards(data,gridId,grade){
     card.innerHTML=
       '<div class="card-hd" onclick="toggleCard(this.parentElement)">'
         +'<div class="card-ico">'+s.ico+'</div>'
-        +'<div class="card-ttl"><h3>'+s.t+'</h3><span>'+s.sub+'</span></div>'
+        +'<div class="card-ttl"><h3>'+s.t+'</h3><span>'+s.sub+'</span><div id="lvbdg-'+key+'" style="margin-top:4px">'+getLvBadgeHtml(key)+'</div></div>'
         +'<span class="card-sc '+(hasSc?'ok':'no')+'" id="sc-'+key+'">'+lastPct+'</span>'
         +'<span class="card-tog">&#9662;</span>'
       +'</div>'
@@ -744,10 +783,10 @@ function shuffle(arr){
 }
 function getLocalQuestions(key,topics,allTops,count){
   var pool=getMergedBank(key);
-  if(topics&&topics.length<allTops.length){
-    pool=pool.filter(function(q){return topics.indexOf(q.subtopic)!==-1;});
-  }
-  return shuffle(pool).slice(0,count);
+  var level=getAdaptiveLevel(key);
+  if(topics&&topics.length<allTops.length){pool=pool.filter(function(q){return topics.indexOf(q.subtopic)!==-1;});}
+  var byLv=pool.filter(function(q){return !q.level||q.level===level;});
+  return shuffle(byLv.length>=count?byLv:pool).slice(0,count);
 }
 function saveNewQuestions(key,newQs){
   if(!newQs||!newQs.length) return;
@@ -842,8 +881,11 @@ function generate(s, topics, grade, nq){
   var glabel=_gradeNames[grade]||grade;
   nq = nq||10;
   var mcqN=Math.round(nq*0.7), openN=nq-mcqN;
+  var _lvLabel={facile:'facile — concepts de base, questions directes et simples',moyen:'moyen — application standard du programme',difficile:'difficile — analyse, raisonnement et questions complexes'};
+  var _curLv=getAdaptiveLevel(CQ.key);
   var prompt='Tu es un enseignant quebecois experimente. Genere exactement '+nq+' questions de revision en francais pour un eleve de '
-    +glabel+' dans la matiere "'+s.t+'" ('+s.sub+'), portant sur ces sujets: '+topics.join(', ')+'.\n\n'
+    +glabel+' dans la matiere "'+s.t+'" ('+s.sub+'), portant sur ces sujets: '+topics.join(', ')+'.\n'
+    +'Niveau de difficulte: '+_lvLabel[_curLv]+'.\n\n'
     +'Retourne UNIQUEMENT un tableau JSON valide, sans aucun texte avant ou apres.\n'
     +'Format de chaque element:\n'
     +'{"subtopic":"<sujet>","type":"mcq","question":"<question>","choices":["<A>","<B>","<C>","<D>"],"answer":"<texte exact de la bonne reponse>","solution":"<explication 1-2 phrases>"}\n'
@@ -984,6 +1026,7 @@ function showRes(){
   var sc=document.getElementById('sc-'+CQ.key);
   if(sc){sc.textContent=pct+'%';sc.className='card-sc ok';}
   recQuiz(CQ.key,qScore,tot);
+  updateAdaptiveLevel(CQ.key);
   var h=hist[CQ.key]||[];
   var cb=document.querySelector('#card-'+CQ.key+' .card-bd');
   if(cb){var ex=cb.querySelector('.subj-hist'),nh=histHtml(h);if(ex)ex.outerHTML=nh;else if(nh)cb.insertAdjacentHTML('beforeend',nh);}
@@ -1093,7 +1136,7 @@ function renderParentProfile(id){
       allKeys.forEach(function(key){
         var sessions=phist[key];
         if(!sessions||!sessions.length) return;
-        html+=_renderParSubj(key,sessions,null);
+        html+=_renderParSubj(key,key,sessions,null);
       });
       html+='</div>';
     }
@@ -1102,14 +1145,20 @@ function renderParentProfile(id){
     data.forEach(function(s,i){
       var key=p.grade+'_'+i;
       var sessions=phist[key]||[];
-      html+=_renderParSubj(s.t,sessions,s);
+      html+=_renderParSubj(key,s.t,sessions,s);
     });
     html+='</div>';
   }
   document.getElementById('parent-content').innerHTML=html;
 }
 
-function _renderParSubj(label,sessions,subjectDef){
+function setParentLevel(key,level){
+  localStorage.setItem('dv-level-'+key,level);
+  var bdg=document.getElementById('lvbdg-'+key);
+  if(bdg) bdg.innerHTML=getLvBadgeHtml(key);
+  toast('Niveau ajust\u00e9 \u2192 '+level);
+}
+function _renderParSubj(key,label,sessions,subjectDef){
   var ico=subjectDef?subjectDef.ico:'&#128218;';
   var lastPct=sessions.length?Math.round(sessions[0].score/sessions[0].total*100):null;
   var scoreCol=lastPct===null?'var(--muted)':lastPct>=75?'#1B9E78':lastPct>=50?'#F4A261':'#E63946';
@@ -1143,6 +1192,16 @@ function _renderParSubj(label,sessions,subjectDef){
   } else {
     h+='<div style="font-size:.78rem;color:var(--muted);font-weight:700;padding:6px 0;text-align:center">Aucune session</div>';
   }
+  // Level override control
+  var curLv=getAdaptiveLevel(key);
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0;">'
+    +'<span style="font-size:.7rem;font-weight:800;color:var(--muted)">Niveau :</span>'
+    +'<select onchange="setParentLevel(\''+key+'\',this.value)" style="font-family:\'Nunito\',sans-serif;font-size:.78rem;font-weight:700;border:1.5px solid #ddd;border-radius:8px;padding:3px 6px;cursor:pointer;">'
+    +'<option value="facile"'+(curLv==='facile'?' selected':'')+'>🟢 Facile</option>'
+    +'<option value="moyen"'+(curLv==='moyen'?' selected':'')+'>🟡 Moyen</option>'
+    +'<option value="difficile"'+(curLv==='difficile'?' selected':'')+'>🔴 Difficile</option>'
+    +'</select>'
+    +'</div>';
   return h+'</div>';
 }
 
