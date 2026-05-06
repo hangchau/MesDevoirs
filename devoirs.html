@@ -392,6 +392,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div id="parent-box">
     <div id="parent-hd">
       <h2>&#x1F4CA; Tableau de bord &mdash; Parents</h2>
+      <button onclick="_importExamQs()" style="font-size:.75rem;color:var(--muted);background:none;border:1.5px solid #d0d0d0;border-radius:20px;cursor:pointer;font-weight:700;padding:4px 10px;">&#x1F4C2; Importer</button>
       <button class="parent-close" onclick="closeParent()">&#x2715;</button>
     </div>
     <div id="parent-ptabs"></div>
@@ -1442,6 +1443,37 @@ function _examUpdateCard(){
   el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
 }
 
+// ---- IMPORT questions_exam.js -----------------------------------
+function _importExamQs(){
+  var input=document.createElement('input');
+  input.type='file'; input.accept='.js';
+  input.onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(evt){
+      try {
+        // Execute the file in an isolated function scope to capture the pool variables
+        var fn=new Function(
+          evt.target.result+
+          '\nreturn [typeof EXAM_MATH_A_POOL!=="undefined"?EXAM_MATH_A_POOL:null,'+
+                  'typeof EXAM_MATH_B_POOL!=="undefined"?EXAM_MATH_B_POOL:null];'
+        );
+        var res=fn();
+        if(!res[0]||!res[1]) throw new Error('Tableaux EXAM_MATH_A_POOL / EXAM_MATH_B_POOL introuvables');
+        EXAM_MATH_A_POOL=res[0];
+        EXAM_MATH_B_POOL=res[1];
+        var nAI=EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length
+              +EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length;
+        toast('✅ Importé : '+EXAM_MATH_A_POOL.length+' q·A + '+EXAM_MATH_B_POOL.length+' q·B ('+nAI+' IA)');
+      } catch(err){
+        toast('❌ Import échoué : '+err.message);
+      }
+    };
+    reader.readAsText(file,'utf-8');
+  };
+  input.click();
+}
+
 // ---- INIT -------------------------------------------------------
 updateBar(); updateAkBar();
 buildCards(SEC1,'sec1-grid','sec1');
@@ -1465,6 +1497,6 @@ _examUpdateCard();
   });
 })();
 </script>
-<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.1500</div>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.1510</div>
 </body>
 </html>
