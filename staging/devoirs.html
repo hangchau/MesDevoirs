@@ -1277,11 +1277,11 @@ resetStats = function() {
 };
 
 
-var EX={phase:null,qi:0,score:{A:0,B:0},timerInterval:null,timeLeft:0};
+var EX={phase:null,qi:0,score:{A:0,B:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0};
 
 function startExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
-  EX.phase=null; EX.qi=0; EX.score={A:0,B:0};
+  EX.phase=null; EX.qi=0; EX.score={A:0,B:0}; EX.skipCount=0;
   document.getElementById('exam-ov').classList.add('open');
   document.body.style.overflow='hidden';
   _examPhase('A');
@@ -1293,11 +1293,14 @@ function closeExam(){
   EX.phase=null;
 }
 function _examPhase(ph){
-  EX.phase=ph; EX.qi=0;
-  var qs=ph==='A'?EXAM_MATH_A:EXAM_MATH_B;
+  EX.phase=ph; EX.qi=0; EX.skipCount=0;
+  var pool=ph==='A'?EXAM_MATH_A_POOL:EXAM_MATH_B_POOL;
+  var count=ph==='A'?15:35;
+  EX.origCount=count;
+  EX.qs=shuffle(pool.slice()).slice(0,count).map(function(q){return {q:q,revisit:false};});
   EX.timeLeft=ph==='A'?300:2100;
   document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':'Partie B — Mathématique';
-  document.getElementById('exam-qtot').textContent=qs.length;
+  document.getElementById('exam-qtot').textContent=count;
   _examTick();
   if(EX.timerInterval) clearInterval(EX.timerInterval);
   EX.timerInterval=setInterval(function(){
@@ -1315,22 +1318,35 @@ function _examTick(){
   el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
   el.classList.toggle('urgent',EX.timeLeft<=60);
 }
+function _skipExam(){
+  EX.qs.push({q:EX.qs[EX.qi].q,revisit:true});
+  EX.skipCount++;
+  document.getElementById('exam-qtot').textContent=EX.qs.length;
+  _examShowQ(EX.qi+1);
+}
 function _examShowQ(i){
-  var qs=EX.phase==='A'?EXAM_MATH_A:EXAM_MATH_B;
-  if(i>=qs.length){ EX.phase==='A'?_examTransition():_examResults(); return; }
+  if(i>=EX.qs.length){ EX.phase==='A'?_examTransition():_examResults(); return; }
   EX.qi=i;
+  var item=EX.qs[i], q=item.q, isRevisit=item.revisit;
   document.getElementById('exam-qnum').textContent=i+1;
-  document.getElementById('exam-pb').style.width=Math.round(i/qs.length*100)+'%';
-  var q=qs[i], last=(i+1>=qs.length);
+  document.getElementById('exam-qtot').textContent=EX.qs.length;
+  document.getElementById('exam-pb').style.width=Math.round(i/EX.qs.length*100)+'%';
+  var last=(i+1>=EX.qs.length);
   var L=['a)','b)','c)','d)'];
   var opts=q.choices.map(function(c,ci){
     return '<button class="q-choice _ec" onclick="_ansExam(this,\''+escJ(c)+'\',\''+escJ(q.answer)+'\','+i+')" style="--qc:#F97316;--ql:#FFF5EB">'+L[ci]+' '+c+'</button>';
   }).join('');
   var nxtLbl=last?(EX.phase==='A'?'&#x27A1; Partie B':'&#x1F3C1; Résultats'):'Question suivante →';
+  var revisitBadge=isRevisit?'<span style="display:inline-block;background:#F59E0B;color:#fff;font-size:.68rem;font-weight:800;padding:2px 10px;border-radius:20px;margin-bottom:4px;">★ Révision</span><br>':'';
+  var aiTag=q.ai?'<span style="font-size:.64rem;color:var(--muted);font-weight:700;opacity:.7"> [IA]</span>':'';
+  var skipBtn=!isRevisit
+    ?'<button onclick="_skipExam()" style="padding:8px 18px;border-radius:20px;border:2px dashed #F59E0B;background:transparent;color:#b45309;font-size:.85rem;font-weight:700;cursor:pointer;">⏭ Passer</button>'
+    :'';
   var html='<div class="q-blk">'
-    +'<div class="q-num">Question '+(i+1)+' — '+(EX.phase==='A'?'Partie A (calcul mental)':'Partie B')+'</div>'
+    +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' — '+(EX.phase==='A'?'Partie A (calcul mental)':'Partie B')+aiTag+'</div>'
     +'<div class="q-txt">'+q.q+'</div>'
     +'<div class="q-choices">'+opts+'</div>'
+    +'<div id="eskip-'+i+'" style="margin:6px 0 2px">'+skipBtn+'</div>'
     +'<div class="q-fb" id="efb-'+i+'"></div>'
     +'<div class="sol-wrap"><div class="sol-box" id="esol-'+i+'">&#x1F4A1; '+q.sol+'</div></div>'
     +'<div class="q-nav" id="enav-'+i+'" style="display:none">'
@@ -1350,51 +1366,76 @@ function _ansExam(btn,chosen,correct,i){
   }
   [].slice.call(document.querySelectorAll('._ec')).forEach(function(b){b.disabled=true;});
   if(ok) EX.score[EX.phase]++;
+  var skipEl=document.getElementById('eskip-'+i); if(skipEl) skipEl.style.display='none';
   var fb=document.getElementById('efb-'+i);
   fb.className='q-fb show '+(ok?'ok':'bad');
-  fb.textContent=ok?'✅ Bonne réponse !':'❌ La bonne réponse : '+correct;
+  fb.textContent=ok?'✅ Bonne réponse !':'❌ La bonne réponse : '+correct;
   var sol=document.getElementById('esol-'+i); if(sol) sol.classList.add('show');
   document.getElementById('enav-'+i).style.display='flex';
 }
 function _examTransition(){
   clearInterval(EX.timerInterval);
+  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:6px;">⏭ '+EX.skipCount+' question(s) passée(s) et révisée(s)</p>':'';
   document.getElementById('exam-body').innerHTML=
     '<div style="text-align:center;padding:32px 16px;">'
     +'<div style="font-size:3rem;margin-bottom:12px;">&#x23F1;&#xFE0F;</div>'
-    +'<h2 style="font-family:\'Fredoka One\',sans-serif;font-size:1.6rem;margin-bottom:8px;">Partie A terminée !</h2>'
-    +'<p style="font-size:1rem;font-weight:700;color:var(--muted);margin-bottom:6px;">Score : <strong style="color:#F97316">'+EX.score.A+' / 15</strong></p>'
-    +'<p style="font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:24px;">La Partie B commence maintenant. 35 questions · 35 minutes.</p>'
+    +'<h2 style="font-family:\'Fredoka One\',sans-serif;font-size:1.6rem;margin-bottom:8px;">Partie A terminée !</h2>'
+    +'<p style="font-size:1rem;font-weight:700;color:var(--muted);margin-bottom:6px;">Score : <strong style="color:#F97316">'+EX.score.A+' / 15</strong></p>'
+    +skipInfo
+    +'<p style="font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:24px;">La Partie B commence maintenant. 35 questions · 35 minutes.</p>'
     +'<button onclick="_examPhase(\'B\')" style="padding:14px 32px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1.1rem;cursor:pointer;">Commencer la Partie B →</button>'
     +'</div>';
 }
 function _examResults(){
   clearInterval(EX.timerInterval);
   var sA=EX.score.A,sB=EX.score.B,tot=sA+sB,pct=Math.round(tot/50*100);
-  var g=pct>=80?{e:'🏆',l:'Excellent !',c:'#1B9E78'}
-       :pct>=65?{e:'🌟',l:'Très bien !',c:'#4361EE'}
-       :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
-               :{e:'📚',l:'Continue !',c:'#E63946'};
+  var g=pct>=80?{e:'🏆',l:'Excellent !',c:'#1B9E78'}
+       :pct>=65?{e:'🌟',l:'Très bien !',c:'#4361EE'}
+       :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
+               :{e:'📚',l:'Continue !',c:'#E63946'};
   localStorage.setItem('exam-last',JSON.stringify({sA:sA,sB:sB,tot:tot,pct:pct,d:new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}));
   _examUpdateCard();
+  var nAI=EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length
+        +EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length;
+  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:8px;">⏭ '+EX.skipCount+' question(s) passée(s)</p>':'';
   document.getElementById('exam-body').innerHTML=
     '<div style="text-align:center;padding:20px 0 10px">'
     +'<div style="width:120px;height:120px;border-radius:50%;margin:0 auto 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:6px solid '+g.c+';color:'+g.c+'">'
     +'<span style="font-family:\'Fredoka One\',sans-serif;font-size:2.1rem;line-height:1">'+pct+'<span style="font-size:1rem">%</span></span>'
     +'<span style="font-size:.7rem;font-weight:800">'+tot+'/50</span></div>'
     +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:1.8rem;margin-bottom:8px;">'+g.e+' '+g.l+'</div>'
+    +skipInfo
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;text-align:left">'
     +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A — Calcul mental</div></div>'
     +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B — Mathématique</div></div>'
     +'</div>'
-    +'<button onclick="startExam()" style="padding:12px 28px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;margin-right:8px;">🔁 Recommencer</button>'
-    +'<button onclick="closeExam()" style="padding:12px 28px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.95rem;cursor:pointer;">← Retour</button>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;">'
+    +'<button onclick="startExam()" style="padding:12px 24px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">🔁 Recommencer</button>'
+    +'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>'
+    +'<button onclick="closeExam()" style="padding:12px 20px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.9rem;cursor:pointer;">← Retour</button>'
+    +'</div>'
+    +'<p style="font-size:.7rem;color:var(--muted);font-weight:600;">Banque : '+EXAM_MATH_A_POOL.length+' q·A &middot; '+EXAM_MATH_B_POOL.length+' q·B &middot; '+nAI+' générées par IA</p>'
     +'</div>';
+}
+function _downloadExamQs(){
+  var content='// Examen d\'admission — PFEQ Québec\n'
+    +'// Téléchargé le : '+new Date().toLocaleDateString('fr-CA')+'\n'
+    +'// Pool A : '+EXAM_MATH_A_POOL.length+' questions ('+EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+' IA)\n'
+    +'// Pool B : '+EXAM_MATH_B_POOL.length+' questions ('+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length+' IA)\n'
+    +'var EXAM_MATH_A_POOL='+JSON.stringify(EXAM_MATH_A_POOL,null,2)+';\n'
+    +'var EXAM_MATH_B_POOL='+JSON.stringify(EXAM_MATH_B_POOL,null,2)+';\n';
+  var blob=new Blob([content],{type:'text/javascript'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='questions_exam.js';
+  a.click();
+  toast('📥 questions_exam.js sauvegardé ('+(EXAM_MATH_A_POOL.length+EXAM_MATH_B_POOL.length)+' questions)');
 }
 function _examUpdateCard(){
   var raw=localStorage.getItem('exam-last'); if(!raw) return;
   var d=JSON.parse(raw), el=document.getElementById('exam-last-score'); if(!el) return;
   el.style.display='block';
-  el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
+  el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
 }
 
 // ---- INIT -------------------------------------------------------
