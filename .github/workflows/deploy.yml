@@ -1,0 +1,67 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - preprod
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+
+      - name: Determine deploy path
+        id: path
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          if [ "$BRANCH" = "main" ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+          else
+            echo "dir=$BRANCH" >> $GITHUB_OUTPUT
+          fi
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-dist
+        continue-on-error: true
+
+      - name: Init gh-pages if missing
+        run: |
+          if [ ! -d "gh-pages-dist" ] || [ -z "$(ls -A gh-pages-dist 2>/dev/null)" ]; then
+            mkdir -p gh-pages-dist
+            cd gh-pages-dist
+            git init
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git checkout --orphan gh-pages
+          fi
+
+      - name: Copy files to deploy path
+        run: |
+          DEPLOY_DIR="${{ steps.path.outputs.dir }}"
+          if [ "$DEPLOY_DIR" = "." ]; then
+            # Production: copy to root (preserve subdirs)
+            cp -r *.html *.js *.md gh-pages-dist/ 2>/dev/null || true
+            # Don't overwrite staging/preprod subdirs
+          else
+            mkdir -p "gh-pages-dist/$DEPLOY_DIR"
+            cp -r *.html *.js *.md "gh-pages-dist/$DEPLOY_DIR/" 2>/dev/null || true
+          fi
+
+      - name: Commit and push to gh-pages
+        run: |
+          cd gh-pages-dist
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Deploy ${{ steps.path.outputs.branch }} → ${{ steps.path.outputs.dir }}"
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:gh-pages --force
