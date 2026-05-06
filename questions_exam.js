@@ -1,5 +1,6 @@
 // Examen d'admission — PFEQ Quebec
-var EXAM_MATH_A=[
+// Pool A : 20 questions (15 originales + 5 IA) · tirage aléatoire de 15
+var EXAM_MATH_A_POOL=[
   {q:"8 + 3 + 5 + 7 + 5 =",choices:["26","28","29","30"],answer:"28",sol:"8+3=11, +5=16, +7=23, +5=28."},
   {q:"6 + 9 + 5 + 4 − 6 =",choices:["18","30","24","19"],answer:"18",sol:"6+9+5+4=24, 24−6=18."},
   {q:"5 × 2 × 8 − 4 + 2 =",choices:["58","86","78","68"],answer:"78",sol:"5×2=10, 10×8=80, 80−4=76, 76+2=78."},
@@ -15,8 +16,16 @@ var EXAM_MATH_A=[
   {q:"8 + 7 + 6 + ___ = 41 &rarr; ___ =",choices:["18","19","20","21"],answer:"20",sol:"8+7+6=21. Donc ___=41−21=20."},
   {q:"(70 + 11) ÷ (3 × 3) =",choices:["9","6","8","7"],answer:"9",sol:"81÷9=9."},
   {q:"(40 ÷ 2) × (5 × 4) =",choices:["1 600","400","40","200"],answer:"400",sol:"20×20=400."},
+  // Générées par IA (25 % du pool)
+  {q:"4 × 9 − 3 × 7 =",choices:["13","14","15","16"],answer:"15",sol:"4×9=36, 3×7=21. 36−21=15.",ai:true},
+  {q:"(6 × 7) ÷ (2 × 3) =",choices:["6","7","8","9"],answer:"7",sol:"6×7=42. 2×3=6. 42÷6=7.",ai:true},
+  {q:"120 ÷ (4 × 3) + 8 =",choices:["16","17","18","19"],answer:"18",sol:"4×3=12. 120÷12=10. 10+8=18.",ai:true},
+  {q:"(7 × 8) − (3 × 9) + 5 =",choices:["32","33","34","35"],answer:"34",sol:"7×8=56, 3×9=27. 56−27=29. 29+5=34.",ai:true},
+  {q:"45 ÷ ___ + 7 = 12 &rarr; ___ =",choices:["7","8","9","10"],answer:"9",sol:"12−7=5. Donc 45÷___=5 → ___=45÷5=9.",ai:true},
 ];
-var EXAM_MATH_B=[
+
+// Pool B : 44 questions (35 originales + 9 IA) · tirage aléatoire de 35
+var EXAM_MATH_B_POOL=[
   {q:"Combien y a-t-il de <strong>centaines</strong> dans 596 473 ?",choices:["4","473","400","5 964"],answer:"5 964",sol:"596 473 ÷ 100 = 5 964,73 → 5 964 centaines."},
   {q:"Quelle est la <strong>valeur</strong> du chiffre 9 dans 596 473 ?",choices:["590 000","59 000","90 000","96 473"],answer:"90 000",sol:"Le 9 est en position des dizaines de mille : 9 × 10 000 = 90 000."},
   {q:"Trouve le nombre <strong>deux cent deux mille douze</strong>.",choices:["200 012","202 120","202 102","202 012"],answer:"202 012",sol:"Deux cent deux mille = 202 000 + douze = 202 012."},
@@ -52,4 +61,14 @@ var EXAM_MATH_B=[
   {q:"Sur quelle roue as-tu le plus de chances d'obtenir un cœur ?",choices:["Roue A","Roue B","Roue C","Roue D"],answer:"Roue D",sol:"La roue D a 2 sections sur 4 pour le cœur = 1/2, la plus grande probabilité."},
   {q:"Arrondis 7 849 à la centaine près.",choices:["7 800","7 900","8 000","7 850"],answer:"7 800",sol:"Chiffre des dizaines=4 (<5) → on arrondit à la baisse : 7 800."},
   {q:"Terme manquant : 1, 4, 9, 16, ___, 36",choices:["20","24","25","28"],answer:"25",sol:"Carrés parfaits : 1²,2²,3²,4²,5²=25,6²=36."},
+  // Générées par IA (25 % du pool)
+  {q:"Quelle est la <strong>valeur</strong> du chiffre 4 dans 841 269 ?",choices:["4 000","40 000","400","4 000 000"],answer:"40 000",sol:"Le chiffre 4 est en position des dizaines de mille : 4 × 10 000 = 40 000.",ai:true},
+  {q:"Calcule : 35 + 6 × (48 ÷ 8) − 14",choices:["55","56","57","58"],answer:"57",sol:"BEDMAS : 48÷8=6. Puis 6×6=36. Donc 35+36−14=57.",ai:true},
+  {q:"Calcule : 2/3 + 3/4 =",choices:["5/7","17/12","1 1/4","5/12"],answer:"17/12",sol:"LCD=12. 2/3=8/12, 3/4=9/12. 8/12+9/12=17/12.",ai:true},
+  {q:"Quel nombre est <strong>divisible</strong> par 2, 3 et 5 ?",choices:["75","90","100","126"],answer:"90",sol:"90=2×3²×5. Il est divisible par 2 (90÷2=45), 3 (90÷3=30) et 5 (90÷5=18).",ai:true},
+  {q:"Décomposition en facteurs premiers de 72 :",choices:["2×4×9","2×2×2×3×3","3×24","2×36"],answer:"2×2×2×3×3",sol:"72=8×9=2³×3²=2×2×2×3×3.",ai:true},
+  {q:"Périmètre d'un carré dont l'<strong>aire</strong> est 49 cm² ?",choices:["14 cm","28 cm","21 cm","49 cm"],answer:"28 cm",sol:"Aire=côté². 49=7². Périmètre=4×7=28 cm.",ai:true},
+  {q:"Un chandail coûte 60 $. Rabais de 25 %. Prix final ?",choices:["15 $","40 $","45 $","50 $"],answer:"45 $",sol:"Rabais=25%×60=15$. Prix final=60−15=45$. Ou 75%×60=45$.",ai:true},
+  {q:"Un train parcourt 450 km en 3 h. Distance en 5 h ?",choices:["650 km","700 km","750 km","800 km"],answer:"750 km",sol:"Vitesse=450÷3=150 km/h. Distance en 5h=150×5=750 km.",ai:true},
+  {q:"Termes manquants : 2, 6, 18, ___, 162, ___",choices:["54 – 486","36 – 486","54 – 324","72 – 486"],answer:"54 – 486",sol:"Patron : ×3. 18×3=54, 54×3=162 ✓, 162×3=486.",ai:true},
 ];
