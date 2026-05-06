@@ -9,11 +9,11 @@
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-<script src="firebase_config.js"></script>
-<script src="data_subjects.js"></script>
-<script src="questions_sec1.js"></script>
-<script src="questions_pri5.js"></script>
-<script src="questions_exam.js"></script>
+<script src="firebase_config.js?v=20260506"></script>
+<script src="data_subjects.js?v=20260506"></script>
+<script src="questions_sec1.js?v=20260506"></script>
+<script src="questions_pri5.js?v=20260506"></script>
+<script src="questions_exam.js?v=20260506b"></script>
 <script src="profiles.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
@@ -1295,6 +1295,10 @@ function closeExam(){
 function _examPhase(ph){
   EX.phase=ph; EX.qi=0; EX.skipCount=0;
   var pool=ph==='A'?EXAM_MATH_A_POOL:EXAM_MATH_B_POOL;
+  if(!pool||!pool.length){
+    document.getElementById('exam-body').innerHTML='<p style="padding:24px 20px;color:#E63946;font-weight:700;">⚠️ Questions non chargées — rechargez la page (Ctrl+Shift+R).</p>';
+    return;
+  }
   var count=ph==='A'?15:35;
   EX.origCount=count;
   EX.qs=shuffle(pool.slice()).slice(0,count).map(function(q){return {q:q,revisit:false};});
@@ -1461,6 +1465,6 @@ _examUpdateCard();
   });
 })();
 </script>
-<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.1445</div>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.1500</div>
 </body>
 </html>
