@@ -14,6 +14,7 @@
 <script src="questions_sec1.js?v=20260506"></script>
 <script src="questions_pri5.js?v=20260506"></script>
 <script src="questions_exam.js?v=20260506c"></script>
+<script src="questions_francais.js?v=20260506"></script>
 <script src="profiles.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
@@ -321,7 +322,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 <div id="exam" class="grade-panel">
   <div class="grade-header" style="background:linear-gradient(135deg,#F59E0B,#F97316);">
     <div class="emo">&#x1F393;</div>
-    <div><h2>Examen d&#39;admission au secondaire</h2><p>Simulation officielle &middot; Math&eacute;matique &middot; 50 questions &middot; 40 minutes</p></div>
+    <div><h2>Examen d&#39;admission au secondaire</h2><p>Simulation officielle &middot; Math&eacute;matique &amp; Fran&ccedil;ais &middot; 50 questions chacun</p></div>
   </div>
   <div style="max-width:540px;margin:0 auto;padding:0 0 24px;">
     <div class="exam-card">
@@ -343,6 +344,21 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
         </div>
         <div id="exam-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
         <button class="exam-start-btn" onclick="startExam()">&#x1F393; Commencer l&#39;examen</button>
+      </div>
+    </div>
+    <!-- Carte examen Français -->
+    <div class="exam-card" style="margin-top:16px;">
+      <div class="exam-card-bd">
+        <div style="display:inline-block;background:linear-gradient(135deg,#4361EE,#7C3AED);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F4DD; Fran&ccedil;ais</div>
+        <h3 style="font-family:'Fredoka One',sans-serif;font-size:1.25rem;margin:0 0 6px;">Simulation compl&egrave;te &mdash; 50 questions</h3>
+        <p style="font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:12px;">Grammaire, vocabulaire, orthographe &middot; Format identique &agrave; l&#39;examen r&eacute;el.</p>
+        <div style="background:#F0EEFF;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #C4B5FD;margin-bottom:14px;">
+          <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#5B4FCF;margin-bottom:4px;">Partie unique</div>
+          <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#4361EE;">50 questions</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Grammaire &middot; Vocabulaire &middot; &#x23F1; 30 min</div>
+        </div>
+        <div id="exam-fr-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
+        <button class="exam-start-btn" onclick="startExamFR()" style="background:linear-gradient(135deg,#4361EE,#7C3AED);">&#x1F4DD; Commencer le fran&ccedil;ais</button>
       </div>
     </div>
   </div>
@@ -1280,14 +1296,21 @@ resetStats = function() {
 };
 
 
-var EX={phase:null,qi:0,score:{A:0,B:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0};
+var EX={phase:null,mode:null,qi:0,score:{A:0,B:0,FR:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0};
 
 function startExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
-  EX.phase=null; EX.qi=0; EX.score={A:0,B:0}; EX.skipCount=0;
+  EX.phase=null; EX.mode='math'; EX.qi=0; EX.score={A:0,B:0,FR:0}; EX.skipCount=0;
   document.getElementById('exam-ov').classList.add('open');
   document.body.style.overflow='hidden';
   _examPhase('A');
+}
+function startExamFR(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.phase=null; EX.mode='francais'; EX.qi=0; EX.score={A:0,B:0,FR:0}; EX.skipCount=0;
+  document.getElementById('exam-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  _examPhase('FR');
 }
 function closeExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
@@ -1297,16 +1320,16 @@ function closeExam(){
 }
 function _examPhase(ph){
   EX.phase=ph; EX.qi=0; EX.skipCount=0;
-  var pool=ph==='A'?EXAM_MATH_A_POOL:EXAM_MATH_B_POOL;
+  var pool=ph==='A'?EXAM_MATH_A_POOL:ph==='FR'?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL:[]):EXAM_MATH_B_POOL;
   if(!pool||!pool.length){
     document.getElementById('exam-body').innerHTML='<p style="padding:24px 20px;color:#E63946;font-weight:700;">⚠️ Questions non chargées — rechargez la page (Ctrl+Shift+R).</p>';
     return;
   }
-  var count=ph==='A'?15:35;
+  var count=ph==='A'?15:ph==='FR'?50:35;
   EX.origCount=count;
   EX.qs=shuffle(pool.slice()).slice(0,count).map(function(q){return {q:q,revisit:false};});
-  EX.timeLeft=ph==='A'?300:2100;
-  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':'Partie B — Mathématique';
+  EX.timeLeft=ph==='A'?300:ph==='FR'?1800:2100;
+  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':ph==='FR'?'Français — Grammaire & Vocabulaire':'Partie B — Mathématique';
   document.getElementById('exam-qtot').textContent=count;
   _examTick();
   if(EX.timerInterval) clearInterval(EX.timerInterval);
@@ -1314,7 +1337,7 @@ function _examPhase(ph){
     EX.timeLeft--; _examTick();
     if(EX.timeLeft<=0){
       clearInterval(EX.timerInterval);
-      EX.phase==='A'?_examTransition():_examResults();
+      (EX.phase==='A'&&EX.mode==='math')?_examTransition():_examResults();
     }
   },1000);
   _examShowQ(0);
@@ -1332,7 +1355,7 @@ function _skipExam(){
   _examShowQ(EX.qi+1);
 }
 function _examShowQ(i){
-  if(i>=EX.qs.length){ EX.phase==='A'?_examTransition():_examResults(); return; }
+  if(i>=EX.qs.length){ (EX.phase==='A'&&EX.mode==='math')?_examTransition():_examResults(); return; }
   EX.qi=i;
   var item=EX.qs[i], q=item.q, isRevisit=item.revisit;
   document.getElementById('exam-qnum').textContent=i+1;
@@ -1343,7 +1366,7 @@ function _examShowQ(i){
   var opts=q.choices.map(function(c,ci){
     return '<button class="q-choice _ec" onclick="_ansExam(this,\''+escJ(c)+'\',\''+escJ(q.answer)+'\','+i+')" style="--qc:#F97316;--ql:#FFF5EB">'+L[ci]+' '+c+'</button>';
   }).join('');
-  var nxtLbl=last?(EX.phase==='A'?'&#x27A1; Partie B':'&#x1F3C1; Résultats'):'Question suivante →';
+  var nxtLbl=last?((EX.phase==='A'&&EX.mode==='math')?'&#x27A1; Partie B':'&#x1F3C1; Résultats'):'Question suivante →';
   var revisitBadge=isRevisit?'<span style="display:inline-block;background:#F59E0B;color:#fff;font-size:.68rem;font-weight:800;padding:2px 10px;border-radius:20px;margin-bottom:4px;">★ Révision</span><br>':'';
   var aiTag=q.ai?'<span style="font-size:.64rem;color:var(--muted);font-weight:700;opacity:.7"> [IA]</span>':'';
   var skipBtn=!isRevisit
@@ -1351,7 +1374,7 @@ function _examShowQ(i){
     :'';
   var graphicHtml=q.graphic?'<div class="q-graphic">'+q.graphic+'</div>':'';
   var html='<div class="q-blk">'
-    +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' — '+(EX.phase==='A'?'Partie A (calcul mental)':'Partie B')+aiTag+'</div>'
+    +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' — '+(EX.phase==='A'?'Partie A (calcul mental)':EX.phase==='FR'?'Français':'Partie B')+aiTag+'</div>'
     +'<div class="q-txt">'+q.q+'</div>'
     +graphicHtml
     +'<div class="q-choices">'+opts+'</div>'
@@ -1397,16 +1420,34 @@ function _examTransition(){
 }
 function _examResults(){
   clearInterval(EX.timerInterval);
-  var sA=EX.score.A,sB=EX.score.B,tot=sA+sB,pct=Math.round(tot/50*100);
+  var isFR=(EX.mode==='francais');
+  var sA=EX.score.A,sB=EX.score.B,sFR=EX.score.FR;
+  var tot=isFR?sFR:(sA+sB),pct=Math.round(tot/50*100);
   var g=pct>=80?{e:'🏆',l:'Excellent !',c:'#1B9E78'}
        :pct>=65?{e:'🌟',l:'Très bien !',c:'#4361EE'}
        :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
                :{e:'📚',l:'Continue !',c:'#E63946'};
-  localStorage.setItem('exam-last',JSON.stringify({sA:sA,sB:sB,tot:tot,pct:pct,d:new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}));
-  _examUpdateCard();
-  var nAI=EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length
-        +EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length;
+  var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  if(isFR){
+    localStorage.setItem('exam-fr-last',JSON.stringify({sFR:sFR,tot:tot,pct:pct,d:dateStr}));
+    _examUpdateCardFR();
+  } else {
+    localStorage.setItem('exam-last',JSON.stringify({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr}));
+    _examUpdateCard();
+  }
+  var nAI=isFR
+    ?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.filter(function(q){return!!q.ai;}).length:0)
+    :(EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length);
   var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:8px;">⏭ '+EX.skipCount+' question(s) passée(s)</p>':'';
+  var scoreGrid=isFR
+    ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4361EE">'+sFR+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Français — Grammaire &amp; Vocabulaire</div></div>'
+    :'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A — Calcul mental</div></div>'
+     +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B — Mathématique</div></div>';
+  var restartFn=isFR?'startExamFR()':'startExam()';
+  var restartBg=isFR?'linear-gradient(135deg,#4361EE,#7C3AED)':'linear-gradient(135deg,#F59E0B,#F97316)';
+  var poolInfo=isFR
+    ?'Banque : '+(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
+    :'Banque : '+EXAM_MATH_A_POOL.length+' q·A &middot; '+EXAM_MATH_B_POOL.length+' q·B &middot; '+nAI+' générées par IA';
   document.getElementById('exam-body').innerHTML=
     '<div style="text-align:center;padding:20px 0 10px">'
     +'<div style="width:120px;height:120px;border-radius:50%;margin:0 auto 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:6px solid '+g.c+';color:'+g.c+'">'
@@ -1414,16 +1455,15 @@ function _examResults(){
     +'<span style="font-size:.7rem;font-weight:800">'+tot+'/50</span></div>'
     +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:1.8rem;margin-bottom:8px;">'+g.e+' '+g.l+'</div>'
     +skipInfo
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;text-align:left">'
-    +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A — Calcul mental</div></div>'
-    +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B — Mathématique</div></div>'
+    +'<div style="display:grid;grid-template-columns:'+(isFR?'1fr':'1fr 1fr')+';gap:10px;margin:14px 0;text-align:left">'
+    +scoreGrid
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;">'
-    +'<button onclick="startExam()" style="padding:12px 24px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">🔁 Recommencer</button>'
-    +'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>'
+    +'<button onclick="'+restartFn+'" style="padding:12px 24px;border-radius:30px;border:none;background:'+restartBg+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">🔁 Recommencer</button>'
+    +(isFR?'':'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>')
     +'<button onclick="closeExam()" style="padding:12px 20px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.9rem;cursor:pointer;">← Retour</button>'
     +'</div>'
-    +'<p style="font-size:.7rem;color:var(--muted);font-weight:600;">Banque : '+EXAM_MATH_A_POOL.length+' q·A &middot; '+EXAM_MATH_B_POOL.length+' q·B &middot; '+nAI+' générées par IA</p>'
+    +'<p style="font-size:.7rem;color:var(--muted);font-weight:600;">'+poolInfo+'</p>'
     +'</div>';
 }
 function _downloadExamQs(){
@@ -1445,6 +1485,12 @@ function _examUpdateCard(){
   var d=JSON.parse(raw), el=document.getElementById('exam-last-score'); if(!el) return;
   el.style.display='block';
   el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
+}
+function _examUpdateCardFR(){
+  var raw=localStorage.getItem('exam-fr-last'); if(!raw) return;
+  var d=JSON.parse(raw), el=document.getElementById('exam-fr-last-score'); if(!el) return;
+  el.style.display='block';
+  el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
 }
 
 // ---- IMPORT questions_exam.js -----------------------------------
@@ -1483,6 +1529,7 @@ updateBar(); updateAkBar();
 buildCards(SEC1,'sec1-grid','sec1');
 showPriGrade('pri1');
 _examUpdateCard();
+_examUpdateCardFR();
 
 // Profile init — sync from cloud, then load active profile or show selector
 (function initProfiles() {
