@@ -9,8 +9,14 @@
 <!-- Firebase SDK (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-<script src="firebase_config.js"></script>
-<script src="questions_db.js"></script>
+<script src="firebase_config.js?v=20260506"></script>
+<script src="data_subjects.js?v=20260506"></script>
+<script src="questions_sec1.js?v=20260506"></script>
+<script src="questions_pri5.js?v=20260506"></script>
+<script src="questions_exam.js?v=20260506c"></script>
+<script src="questions_francais.js?v=20260506"></script>
+<script src="questions_connaissance.js?v=20260507"></script>
+<script src="questions_logique.js?v=20260506"></script>
 <script src="profiles.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
@@ -244,6 +250,26 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   #quiz-modal{border-radius:16px;}
   #qm-hd,#qm-body,#qm-prog{padding-left:16px;padding-right:16px;}
 }
+/* ---- EXAMEN D'ADMISSION --------------------------------------- */
+.tab-btn.exam.active{background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;border-color:#F97316;transform:translateY(-2px);box-shadow:0 6px 20px rgba(249,115,22,.35);}
+.exam-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;max-width:520px;margin:0 auto;}
+.exam-card-bd{padding:22px 24px;}
+.exam-start-btn{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:'Fredoka One',sans-serif;font-size:1.1rem;cursor:pointer;transition:all .18s;margin-top:14px;}
+.exam-start-btn:hover{opacity:.9;transform:scale(.99);}
+#exam-ov{display:none;position:fixed;inset:0;background:rgba(20,15,50,.72);z-index:1000;overflow-y:auto;padding:20px;}
+#exam-ov.open{display:flex;align-items:flex-start;justify-content:center;}
+#exam-modal{background:#fff;border-radius:24px;width:100%;max-width:760px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.28);margin:auto;}
+#exam-timer-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:#FFFBEB;border-bottom:2px solid #FDE68A;}
+.exam-timer-label{font-family:'Fredoka One',sans-serif;font-size:.95rem;color:#b07000;}
+#exam-timer{font-family:'Fredoka One',sans-serif;font-size:2.2rem;color:#F97316;min-width:90px;text-align:center;letter-spacing:2px;}
+#exam-timer.urgent{color:#E63946;animation:epulse .7s infinite alternate;}
+@keyframes epulse{from{opacity:1;transform:scale(1)}to{opacity:.6;transform:scale(.97)}}
+#exam-pb-wrap{padding:6px 24px 8px;background:#FFFBEB;border-bottom:1px solid #FDE68A;}
+#exam-pb-bg{height:5px;background:#FDE68A;border-radius:4px;overflow:hidden;}
+#exam-pb{height:100%;border-radius:4px;background:linear-gradient(90deg,#F59E0B,#F97316);transition:width .4s;}
+#exam-body{padding:16px 24px 28px;}
+.q-graphic{background:#F8F9FF;border:1.5px solid #E0E4FF;border-radius:12px;padding:12px;margin:10px 0 14px;text-align:center;overflow:hidden;}
+.q-graphic svg{max-width:100%;height:auto;display:block;margin:0 auto;}
 </style>
 </head>
 <body>
@@ -260,14 +286,13 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="stat-pill"><span class="dot ds"></span>S&#233;rie&nbsp;: <strong id="st-streak">0</strong></div>
   <button id="prof-pill" onclick="openProfileSelector()">&#x1F464; Choisir profil</button>
   <button id="btn-parent" onclick="openParent()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:30px;font-size:.82rem;font-weight:800;background:#EEF0FF;color:#5B4FCF;border:1.5px solid #9B91E0;cursor:pointer;box-shadow:var(--shadow);">&#x1F4CA; Parents</button>
-  <button id="btn-rst" onclick="resetStats()">&#x1F5D1; R&#233;init.</button>
   <button id="btn-export" class="stat-pill" onclick="exportQuestionsDB()" style="cursor:pointer;border:1.5px solid #1B9E78;background:#EDFAEB;color:#0A6B51;font-size:.78rem;font-weight:800;">&#x1F4E5; Exporter BD</button>
-  <div id="ak-bar"></div>
 </div>
 
 <div class="tabs">
   <button class="tab-btn sec1 active" onclick="showTab('sec1')">&#x1F392; Secondaire 1 (13 ans)</button>
   <button class="tab-btn pri"         onclick="showTab('pri')">&#x2B50; Primaire</button>
+  <button class="tab-btn exam"        onclick="showTab('exam')">&#x1F393; Examen d&#39;admission</button>
 </div>
 <div class="pri-subtabs" id="pri-subtabs">
   <button class="subtab-btn active" id="pst-pri1" onclick="showPriGrade('pri1')">1re ann&#233;e</button>
@@ -294,9 +319,99 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="subjects-grid" id="pri-grid"></div>
 </div>
 
+<div id="exam" class="grade-panel">
+  <div class="grade-header" style="background:linear-gradient(135deg,#F59E0B,#F97316);">
+    <div class="emo">&#x1F393;</div>
+    <div><h2>Examen d&#39;admission au secondaire</h2><p>Simulation officielle &middot; Math&eacute;matique &amp; Fran&ccedil;ais &middot; 50 questions chacun</p></div>
+  </div>
+  <div style="max-width:540px;margin:0 auto;padding:0 0 24px;">
+    <div class="exam-card">
+      <div class="exam-card-bd">
+        <div style="display:inline-block;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F4D0; Math&eacute;matique</div>
+        <h3 style="font-family:'Fredoka One',sans-serif;font-size:1.25rem;margin:0 0 6px;">Simulation compl&egrave;te &mdash; 50 questions</h3>
+        <p style="font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:12px;">Format identique &agrave; l&#39;examen r&eacute;el. Chronomatre automatique par partie.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div style="background:#FFF5EB;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #FDE68A;">
+            <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#b07000;margin-bottom:4px;">Partie A</div>
+            <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#F97316;">15 questions</div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Calcul mental &middot; &#x23F1; 5 min</div>
+          </div>
+          <div style="background:#FFF5EB;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #FDE68A;">
+            <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#b07000;margin-bottom:4px;">Partie B</div>
+            <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#F97316;">35 questions</div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Math&eacute;matique &middot; &#x23F1; 35 min</div>
+          </div>
+        </div>
+        <div id="exam-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
+        <button class="exam-start-btn" onclick="startExam()">&#x1F393; Commencer l&#39;examen</button>
+      </div>
+    </div>
+    <!-- Carte examen Français -->
+    <div class="exam-card" style="margin-top:16px;">
+      <div class="exam-card-bd">
+        <div style="display:inline-block;background:linear-gradient(135deg,#4361EE,#7C3AED);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F4DD; Fran&ccedil;ais</div>
+        <h3 style="font-family:'Fredoka One',sans-serif;font-size:1.25rem;margin:0 0 6px;">Simulation compl&egrave;te &mdash; 50 questions</h3>
+        <p style="font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:12px;">Grammaire, vocabulaire, orthographe &middot; Format identique &agrave; l&#39;examen r&eacute;el.</p>
+        <div style="background:#F0EEFF;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #C4B5FD;margin-bottom:14px;">
+          <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#5B4FCF;margin-bottom:4px;">Partie unique</div>
+          <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#4361EE;">50 questions</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Grammaire &middot; Vocabulaire &middot; &#x23F1; 30 min</div>
+        </div>
+        <div id="exam-fr-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
+        <button class="exam-start-btn" onclick="startExamFR()" style="background:linear-gradient(135deg,#4361EE,#7C3AED);">&#x1F4DD; Commencer le fran&ccedil;ais</button>
+      </div>
+    </div>
+    <div class="exam-card" style="margin-top:16px;">
+      <div class="exam-card-bd">
+        <div style="display:inline-block;background:linear-gradient(135deg,#1B9E78,#10B981);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F310; Connaissances g&eacute;n&eacute;rales</div>
+        <h3 style="font-family:'Fredoka One',sans-serif;font-size:1.25rem;margin:0 0 6px;">Simulation compl&egrave;te &mdash; 50 questions</h3>
+        <p style="font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:12px;">Sciences, g&eacute;ographie, histoire, culture g&eacute;n&eacute;rale &middot; Format identique &agrave; l&#39;examen r&eacute;el.</p>
+        <div style="background:#EDFAEB;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #6BCFB0;margin-bottom:14px;">
+          <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#1B9E78;margin-bottom:4px;">Partie unique</div>
+          <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#1B9E78;">50 questions</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Culture g&eacute;n&eacute;rale &middot; &#x23F1; 30 min</div>
+        </div>
+        <div id="exam-cg-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
+        <button class="exam-start-btn" onclick="startExamCG()" style="background:linear-gradient(135deg,#1B9E78,#10B981);">&#x1F310; Commencer connaissances g&eacute;n&eacute;rales</button>
+      </div>
+    </div>
+    <!-- Carte examen Logique -->
+    <div class="exam-card" style="margin-top:16px;">
+      <div class="exam-card-bd">
+        <div style="display:inline-block;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F9E0; Logique</div>
+        <h3 style="font-family:'Fredoka One',sans-serif;font-size:1.25rem;margin:0 0 6px;">Simulation compl&egrave;te &mdash; 50 questions</h3>
+        <p style="font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:12px;">Raisonnement, suites, analogies, probabilit&eacute;s &middot; Format identique &agrave; l&#39;examen r&eacute;el.</p>
+        <div style="background:#EEF2FF;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #A5B4FC;margin-bottom:14px;">
+          <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#4F46E5;margin-bottom:4px;">Partie unique</div>
+          <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#4F46E5;">50 questions</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Raisonnement logique &middot; &#x23F1; 35 min</div>
+        </div>
+        <div id="exam-lq-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
+        <button class="exam-start-btn" onclick="startExamLQ()" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);">&#x1F9E0; Commencer la logique</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <p style="text-align:center;font-size:.75rem;color:var(--muted);margin:24px 16px 0;font-weight:600;">
   Source&nbsp;: <a href="https://www.education.gouv.qc.ca" target="_blank" style="color:#5B4FCF;">Minist&#232;re de l&#39;&#201;ducation du Qu&#233;bec</a> &middot; PFEQ &amp; R&#233;gime p&#233;dagogique &middot; 2025-2026
 </p>
+
+<!-- EXAM MODAL -->
+<div id="exam-ov">
+  <div id="exam-modal">
+    <div id="exam-timer-wrap">
+      <div>
+        <div class="exam-timer-label" id="exam-part-label">Partie A &mdash; Calcul mental</div>
+        <div style="font-size:.75rem;color:#b07000;font-weight:700;margin-top:2px;">Q&nbsp;<span id="exam-qnum">1</span>&nbsp;/&nbsp;<span id="exam-qtot">15</span></div>
+      </div>
+      <div id="exam-timer">05:00</div>
+      <button onclick="closeExam()" style="background:none;border:2px solid #FDE68A;border-radius:50%;width:36px;height:36px;font-size:1.1rem;cursor:pointer;color:#b07000;flex-shrink:0;">&#x2715;</button>
+    </div>
+    <div id="exam-pb-wrap"><div id="exam-pb-bg"><div id="exam-pb" style="width:0%"></div></div></div>
+    <div id="exam-body"></div>
+  </div>
+</div>
 
 <!-- QUIZ MODAL -->
 <div id="quiz-ov">
@@ -324,6 +439,8 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div id="parent-box">
     <div id="parent-hd">
       <h2>&#x1F4CA; Tableau de bord &mdash; Parents</h2>
+      <div id="ak-bar"></div>
+      <button onclick="_importExamQs()" style="font-size:.75rem;color:var(--muted);background:none;border:1.5px solid #d0d0d0;border-radius:20px;cursor:pointer;font-weight:700;padding:4px 10px;">&#x1F4C2; Importer</button>
       <button class="parent-close" onclick="closeParent()">&#x2715;</button>
     </div>
     <div id="parent-ptabs"></div>
@@ -398,194 +515,6 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 <div id="toast"></div>
 
 <script>
-// ---- DATA -------------------------------------------------------
-var SEC1=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~7h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire et appr\u00e9cier des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
-   tops:['Lecture','R\u00e9daction','Grammaire','Conjugaison','Orthographe','Expression orale','Analyse de texte']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Arithm\u00e9tique','Alg\u00e8bre','Fractions & d\u00e9cimaux','G\u00e9om\u00e9trie','Mesures','Probabilit\u00e9s','Statistiques']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Chercher des r\u00e9ponses \u00e0 des probl\u00e8mes','Mettre \u00e0 profit ses connaissances S&T','Communiquer en science'],
-   tops:['M\u00e9thode scientifique','Mati\u00e8re & \u00e9nergie','Vivant','Syst\u00e8mes techniques','Environnement','Univers','Projets techno']},
-  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~3h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Soci\u00e9t\u00e9s du monde','Grandes civilisations','Territoires','Cartes & atlas','Rep\u00e8res chronologiques','Droits & d\u00e9mocratie']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension des textes','Produire des textes vari\u00e9s'],
-   tops:['Speaking & listening','Reading comprehension','Writing','Vocabulary','Grammar','Media texts']},
-  {ico:'&#127912;',t:'Arts',sub:'1 domaine au choix',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des \u0153uvres personnelles','Appr\u00e9cier des \u0153uvres d\'art','M\u00e9diatiser sa cr\u00e9ation'],
-   tops:['Arts plastiques','Musique','Danse','Art dramatique']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
-   tops:['Sports collectifs','Activit\u00e9s rythmiques','Plein air','Condition physique','Hygi\u00e8ne & sant\u00e9','Nutrition']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9 culturelle','D\u00e9velopper son appartenance'],
-   tops:['Identit\u00e9 qu\u00e9b\u00e9coise','Valeurs d\u00e9mocratiques','Diversit\u00e9 culturelle','Enjeux sociaux','Dialogue \u00e9thique','Droits & responsabilit\u00e9s']},
-];
-var PRI1=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~9h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire des textes simples','\u00c9crire de courts textes','Communiquer oralement'],
-   tops:['Conscience phonologique','Lecture d\u00e9butante','\u00c9criture de base','Sons & lettres','Expression orale','Compr\u00e9hension','Calligraphie']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~6h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Nombres 0\u2013100','Compter & suites','Addition simple','Soustraction simple','G\u00e9om\u00e9trie de base','Mesures simples','Donn\u00e9es']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~1h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Explorer le monde','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
-   tops:['Mon corps','Les animaux','Les plantes','Mati\u00e8re & objets','Exp\u00e9riences simples','Environnement','Saisons']},
-  {ico:'&#127757;',t:'Univers social',sub:'G\u00e9ographie & histoire',hrs:'~1h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Ma famille','Mon \u00e9cole','Mon quartier','Rep\u00e8res simples','Routines quotidiennes','Besoins & d\u00e9sirs']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~1h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension'],
-   tops:['Salutations','Couleurs & chiffres','Mots simples','Chansons','Corps humain','Salle de classe']},
-  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des images personnelles','Appr\u00e9cier des \u0153uvres'],
-   tops:['Dessin','Peinture','Collage','Couleurs primaires','Formes','Textures']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir','Adopter un mode de vie sain'],
-   tops:['Mouvements de base','Jeux simples','\u00c9quilibre','Locomotion','Coordination','Hygi\u00e8ne de base']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['\u00c8gles de classe','Respect','Partage','Diff\u00e9rences','Entraide','F\u00eates qu\u00e9b\u00e9coises']},
-];
-var PRI2=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~9h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes courts','Communiquer oralement'],
-   tops:['Lecture courante','R\u00e9daction courte','Grammaire de base','Conjugaison pr\u00e9sent','Orthographe usuelle','Vocabulaire','Compr\u00e9hension']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~6h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Nombres 0\u2013200','Addition & soustraction','Multiplication initiation','G\u00e9om\u00e9trie planes','Mesures','Suites & r\u00e8gles','Donn\u00e9es']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~1h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Explorer le monde','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
-   tops:['Corps humain','Animaux & habitat','Mati\u00e8re & \u00e9tats','Exp\u00e9riences','Forces simples','Environnement','Cycle de vie']},
-  {ico:'&#127757;',t:'Univers social',sub:'G\u00e9ographie & histoire',hrs:'~1h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Ma communaut\u00e9','Besoins & m\u00e9tiers','Cartes simples','Peuples du monde','Hier & aujourd\'hui','Droits d\'enfants']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~1h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
-   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
-  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des images personnelles','Appr\u00e9cier des \u0153uvres'],
-   tops:['Arts plastiques','Dessin & couleurs','Collage','Rythme musical','Jeux dramatiques','Appr\u00e9ciation']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir','Adopter un mode de vie sain'],
-   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','S\u00e9curit\u00e9','Saine alimentation','Hygi\u00e8ne personnelle']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Ma communaut\u00e9','Traditions du Qu\u00e9bec','Respect des r\u00e8gles','Diversit\u00e9 culturelle','Valeurs partag\u00e9es','Dialogue']},
-];
-var PRI3=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
-   tops:['Lecture','R\u00e9daction','Grammaire','Conjugaison','Orthographe','Vocabulaire','Compr\u00e9hension']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Nombres 0\u20131000','Multiplication & division','Fractions simples','G\u00e9om\u00e9trie','Mesures','Probabilit\u00e9s','Statistiques']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
-   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces simples','Transformations','Construction','Exp\u00e9riences']},
-  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Territoires','Droits & citoyennet\u00e9']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
-   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
-  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres'],
-   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Musique','Jeux dramatiques','Appr\u00e9ciation culturelle']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
-   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9','D\u00e9velopper son appartenance'],
-   tops:['Traditions du Qu\u00e9bec','F\u00eates & cultures','Valeurs partag\u00e9es','Respect des diff\u00e9rences','R\u00e8gles de vie','Dialogue']},
-];
-var PRI4=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
-   tops:['Lecture','R\u00e9daction','Orthographe','Grammaire','Conjugaison','Vocabulaire','Compr\u00e9hension']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Nombres naturels','Fractions & d\u00e9cimaux','Op\u00e9rations (+\u2212\u00d7\u00f7)','G\u00e9om\u00e9trie','Mesures','Probabilit\u00e9s','Statistiques']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
-   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces simples','Transformations','Projets de construction','Exp\u00e9riences']},
-  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','R\u00e9gime britannique','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Droits & citoyennet\u00e9']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
-   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
-  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres d\'art'],
-   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Art num\u00e9rique','Musique','Appr\u00e9ciation culturelle']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
-   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9','D\u00e9velopper son appartenance'],
-   tops:['Traditions du Qu\u00e9bec','F\u00eates & cultures','Valeurs partag\u00e9es','Respect des diff\u00e9rences','R\u00e8gles de vie','Dialogue']},
-];
-var PRI5=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
-   tops:['Lecture','R\u00e9daction','Orthographe','Grammaire','Conjugaison','Vocabulaire','Compr\u00e9hension']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Nombres naturels','Fractions & d\u00e9cimaux','Op\u00e9rations (+\u2212\u00d7\u00f7)','G\u00e9om\u00e9trie','Mesures','Probabilit\u00e9s','Statistiques']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
-   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces simples','Transformations','Projets de construction','Exp\u00e9riences']},
-  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','R\u00e9gime britannique','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Droits & citoyennet\u00e9']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension','Produire des textes'],
-   tops:['Listening & speaking','Simple reading','Vocabulary','Short writing','Songs & poems','Basic grammar']},
-  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres d\'art'],
-   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Art num\u00e9rique','Musique','Appr\u00e9ciation culturelle']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
-   tops:['Sports & jeux','Habilet\u00e9s motrices','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9','D\u00e9velopper son appartenance'],
-   tops:['Traditions du Qu\u00e9bec','F\u00eates & cultures','Valeurs partag\u00e9es','Respect des diff\u00e9rences','R\u00e8gles de vie','Dialogue']},
-];
-
-var PRI6=[
-  {ico:'&#9997;&#65039;',t:'Fran\u00e7ais',sub:'Langue d\'enseignement',hrs:'~8h/sem',c:'#E63946',l:'#FFF0F1',m:'#F4A3A8',
-   comps:['Lire et appr\u00e9cier des textes vari\u00e9s','\u00c9crire des textes vari\u00e9s','Communiquer oralement'],
-   tops:['Lecture','R\u00e9daction','Grammaire avanc\u00e9e','Conjugaison','Orthographe','Analyse de texte','Expression orale']},
-  {ico:'&#128290;',t:'Math\u00e9matique',sub:'Mati\u00e8re obligatoire',hrs:'~5h/sem',c:'#4361EE',l:'#EDF0FF',m:'#A3B2F5',
-   comps:['R\u00e9soudre une situation-probl\u00e8me','Raisonner \u00e0 l\'aide de concepts math\u00e9matiques','Communiquer en math\u00e9matique'],
-   tops:['Nombres naturels & entiers','Fractions & d\u00e9cimaux','Op\u00e9rations complexes','G\u00e9om\u00e9trie','Mesures & unit\u00e9s','Probabilit\u00e9s','Statistiques']},
-  {ico:'&#128300;',t:'Science et technologie',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#3A9D23',l:'#EDFAEB',m:'#90D884',
-   comps:['Explorer le monde S&T','Mettre \u00e0 profit ses outils','Communiquer en S&T'],
-   tops:['Corps humain','\u00c9cosyst\u00e8mes','Mati\u00e8re & \u00e9nergie','Forces & mouvements','Transformations','Projets techno','Exp\u00e9riences scientifiques']},
-  {ico:'&#127757;',t:'G\u00e9ographie & histoire',sub:'\u00c9ducation \u00e0 la citoyennet\u00e9',hrs:'~2h/sem',c:'#F4A261',l:'#FFF5EB',m:'#FACC99',
-   comps:['Lire l\'organisation d\'une soci\u00e9t\u00e9','Interpr\u00e9ter le changement','S\'ouvrir \u00e0 la diversit\u00e9'],
-   tops:['Soci\u00e9t\u00e9s autochtones','Nouvelle-France','R\u00e9gime britannique','Cartes du Qu\u00e9bec','Rep\u00e8res historiques','Droits & citoyennet\u00e9']},
-  {ico:'&#127760;',t:'Anglais',sub:'Langue seconde',hrs:'~2h/sem',c:'#7B2FBE',l:'#F4ECFF',m:'#C49EE8',
-   comps:['Interagir en anglais','R\u00e9investir sa compr\u00e9hension des textes','Produire des textes vari\u00e9s'],
-   tops:['Listening & speaking','Reading comprehension','Writing','Vocabulary','Grammar','Media texts']},
-  {ico:'&#127912;',t:'Arts',sub:'Mati\u00e8re obligatoire',hrs:'~2h/sem',c:'#E040FB',l:'#FDF0FF',m:'#E8AAEF',
-   comps:['Cr\u00e9er des images personnelles','Cr\u00e9er des images m\u00e9diatiques','Appr\u00e9cier des \u0153uvres d\'art'],
-   tops:['Arts plastiques','Dessin & peinture','Collage & sculpture','Art num\u00e9rique','Musique','Appr\u00e9ciation culturelle']},
-  {ico:'&#127939;',t:'\u00c9ducation physique',sub:'Et \u00e0 la sant\u00e9',hrs:'~2h/sem',c:'#FF6B35',l:'#FFF2EE',m:'#FFBDA6',
-   comps:['Agir dans divers contextes physiques','Interagir dans divers contextes','Adopter un mode de vie sain'],
-   tops:['Sports collectifs','Activit\u00e9s rythmiques','Plein air','Condition physique','Saine alimentation','Hygi\u00e8ne personnelle']},
-  {ico:'&#128506;&#65039;',t:'Culture et citoyennet\u00e9',sub:'Qu\u00e9b\u00e9coise (CCQ)',hrs:'~1h/sem',c:'#0096C7',l:'#E8F7FC',m:'#7ECFEA',
-   comps:['R\u00e9fl\u00e9chir de fa\u00e7on critique','S\'ouvrir \u00e0 la diversit\u00e9 culturelle','D\u00e9velopper son appartenance'],
-   tops:['Identit\u00e9 qu\u00e9b\u00e9coise','Valeurs d\u00e9mocratiques','Diversit\u00e9 culturelle','Enjeux sociaux','Dialogue \u00e9thique','Droits & responsabilit\u00e9s']},
-];
-var PRIDATA={pri1:PRI1,pri2:PRI2,pri3:PRI3,pri4:PRI4,pri5:PRI5,pri6:PRI6};
-var PRI_LABELS={pri1:'1re ann\u00e9e',pri2:'2e ann\u00e9e',pri3:'3e ann\u00e9e',pri4:'4e ann\u00e9e',pri5:'5e ann\u00e9e',pri6:'6e ann\u00e9e'};
-var PRI_AGES={pri1:'6 ans',pri2:'7 ans',pri3:'8 ans',pri4:'9 ans',pri5:'10 ans',pri6:'11 ans'};
-var activePriGrade = 'pri1';
 
 // ---- STATS ------------------------------------------------------
 var stats = JSON.parse(localStorage.getItem('dv-stats') || '{"total":0,"ok":0,"wrong":0,"streak":0,"best":0}');
@@ -1126,6 +1055,7 @@ function renderParentProfile(id){
   document.querySelectorAll('.ptab').forEach(function(b){b.classList.toggle('active',b.dataset.id===id);});
   var phist=p.hist||{};
   var data=_gradeDataFor(p.grade);
+  var _GL={sec1:'Secondaire 1',pri1:'1re ann\u00e9e',pri2:'2e ann\u00e9e',pri3:'3e ann\u00e9e',pri4:'4e ann\u00e9e',pri5:'5e ann\u00e9e',pri6:'6e ann\u00e9e',both:'Les deux'};
 
   // overall avg
   var sc=0,cnt=0;
@@ -1140,8 +1070,54 @@ function renderParentProfile(id){
     +(avg!==null?'<div style="margin-left:auto;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:2rem;color:'+avgCol+'">'+avg+'%</div><div style="font-size:.7rem;font-weight:800;color:var(--muted)">moyenne g\u00e9n\u00e9rale</div></div>':'')
     +'</div>';
 
+  // ---- Examen d'admission results ----
+  var histMath=JSON.parse(localStorage.getItem('exam-hist-math-'+id)||'null');
+  if(!histMath){var _om=localStorage.getItem('exam-last-'+id);if(_om)histMath=[JSON.parse(_om)];}
+  var histFR=JSON.parse(localStorage.getItem('exam-hist-fr-'+id)||'null');
+  if(!histFR){var _of=localStorage.getItem('exam-fr-last-'+id);if(_of)histFR=[JSON.parse(_of)];}
+  var histCG=JSON.parse(localStorage.getItem('exam-hist-cg-'+id)||'null');
+  var histLQ=JSON.parse(localStorage.getItem('exam-hist-lq-'+id)||'null');
+  var hasMath=histMath&&histMath.length, hasFR=histFR&&histFR.length, hasCG=histCG&&histCG.length, hasLQ=histLQ&&histLQ.length;
+  if(hasMath||hasFR||hasCG||hasLQ){
+    html+='<div style="background:#FFF8EE;border:1.5px solid #F4A261;border-radius:14px;padding:14px 16px;margin-bottom:16px;">'
+      +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:.95rem;color:#b45309;margin-bottom:10px;">\ud83c\udf93 Examen d\'admission</div>';
+    if(hasMath){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin-bottom:5px;">\ud83d\udccf Math\u00e9matique</div>';
+      histMath.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'% \u2014 A:'+r.sA+'/15 \u00b7 B:'+r.sB+'/35';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
+    }
+    if(hasFR){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:'+(hasMath?'12':'0')+'px 0 5px;">\ud83d\udcdd Fran\u00e7ais</div>';
+      histFR.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'%';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
+    }
+    if(hasCG){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:'+((hasMath||hasFR)?'12':'0')+'px 0 5px;">\ud83c\udf10 Connaissances g\u00e9n\u00e9rales</div>';
+      histCG.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'%';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
+    }
+    if(hasLQ){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:'+((hasMath||hasFR||hasCG)?'12':'0')+'px 0 5px;">\ud83e\udde0 Logique</div>';
+      histLQ.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'%';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
+    }
+    html+='</div>';
+  }
+
+  // ---- Current grade subjects ----
   if(!data){
-    // "both" or unknown: show all available sessions from hist
     html+='<p style="color:var(--muted);font-weight:700;text-align:center;padding:24px">S\u00e9lectionnez un niveau sp\u00e9cifique dans le profil pour voir la d\u00e9composition par mati\u00e8re.</p>';
     var allKeys=Object.keys(phist);
     if(allKeys.length){
@@ -1154,6 +1130,7 @@ function renderParentProfile(id){
       html+='</div>';
     }
   } else {
+    html+='<div style="font-family:\'Fredoka One\',sans-serif;font-size:.88rem;color:#5B4FCF;margin-bottom:10px;">\ud83d\udcda '+(_GL[p.grade]||p.grade)+' \u2014 Ann\u00e9e courante</div>';
     html+='<div class="par-grid">';
     data.forEach(function(s,i){
       var key=p.grade+'_'+i;
@@ -1162,6 +1139,45 @@ function renderParentProfile(id){
     });
     html+='</div>';
   }
+
+  // ---- Previous school years ----
+  var currentPrefix=p.grade+'_';
+  var otherByGrade={};
+  Object.keys(phist).forEach(function(key){
+    if(key.indexOf(currentPrefix)!==0){
+      var lastUs=key.lastIndexOf('_');
+      var grade=lastUs>-1?key.substring(0,lastUs):key;
+      if(!otherByGrade[grade]) otherByGrade[grade]=[];
+      otherByGrade[grade].push(key);
+    }
+  });
+  var otherGrades=Object.keys(otherByGrade).filter(function(g){
+    return otherByGrade[g].some(function(k){return phist[k]&&phist[k].length;});
+  });
+  if(otherGrades.length){
+    html+='<details style="margin-top:18px;border:1.5px solid #E0E0E0;border-radius:14px;overflow:hidden;">'
+      +'<summary style="padding:12px 16px;font-family:\'Fredoka One\',sans-serif;font-size:.95rem;cursor:pointer;background:#FAFAFA;list-style:none;display:flex;justify-content:space-between;align-items:center;">'
+      +'\ud83d\udcc5 Ann\u00e9es pr\u00e9c\u00e9dentes'
+      +'<span style="font-size:.75rem;font-weight:800;color:var(--muted)">'+otherGrades.length+' niveau(x)</span></summary>'
+      +'<div style="padding:12px 16px">';
+    otherGrades.forEach(function(grade){
+      var gradeData=_gradeDataFor(grade);
+      html+='<div style="font-family:\'Fredoka One\',sans-serif;font-size:.85rem;color:#1B9E78;margin:12px 0 8px;">\ud83d\udcda '+(_GL[grade]||grade)+'</div>';
+      html+='<div class="par-grid">';
+      otherByGrade[grade].forEach(function(key){
+        var sessions=phist[key]||[];
+        if(!sessions.length) return;
+        var lastUs=key.lastIndexOf('_');
+        var idx=lastUs>-1?parseInt(key.substring(lastUs+1)):NaN;
+        var subjectDef=gradeData&&!isNaN(idx)?gradeData[idx]:null;
+        var label=subjectDef?subjectDef.t:key;
+        html+=_renderParSubj(key,label,sessions,subjectDef);
+      });
+      html+='</div>';
+    });
+    html+='</div></details>';
+  }
+
   document.getElementById('parent-content').innerHTML=html;
 }
 
@@ -1297,6 +1313,10 @@ function selectProfile(id) {
   if (data) { stats = data.stats; hist = data.hist; }
   updateBar();
   updateProfPill();
+  _examUpdateCard();
+  _examUpdateCardFR();
+  _examUpdateCardCG();
+  _examUpdateCardLQ();
   closeProfileSelector();
   toast('\ud83d\udc4b Bonjour\u00a0'+ProfileManager.getActive().name+'\u00a0!');
 }
@@ -1396,10 +1416,365 @@ resetStats = function() {
   toast('Statistiques r\u00e9initialis\u00e9es');
 };
 
+
+var EX={phase:null,mode:null,qi:0,score:{A:0,B:0,FR:0,CG:0,LQ:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0,finished:false};
+
+function startExam(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.phase=null; EX.mode='math'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0,LQ:0}; EX.skipCount=0;
+  document.getElementById('exam-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  _examPhase('A');
+}
+function startExamFR(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.phase=null; EX.mode='francais'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0,LQ:0}; EX.skipCount=0;
+  document.getElementById('exam-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  _examPhase('FR');
+}
+function startExamCG(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.phase=null; EX.mode='cg'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0,LQ:0}; EX.skipCount=0;
+  document.getElementById('exam-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  _examPhase('CG');
+}
+function startExamLQ(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.phase=null; EX.mode='lq'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0,LQ:0}; EX.skipCount=0;
+  document.getElementById('exam-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  _examPhase('LQ');
+}
+function closeExam(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  if(EX.phase!==null && !EX.finished){
+    var _pid=ProfileManager.getActiveId()||'default';
+    var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    if(EX.mode==='francais'){
+      var _hfr=JSON.parse(localStorage.getItem('exam-hist-fr-'+_pid)||'[]');
+      _hfr.unshift({sFR:EX.score.FR,tot:EX.score.FR,pct:Math.round(EX.score.FR/50*100),d:dateStr,abandoned:true,qi:EX.qi});
+      if(_hfr.length>5)_hfr.pop();
+      localStorage.setItem('exam-hist-fr-'+_pid,JSON.stringify(_hfr));
+      _examUpdateCardFR();
+    } else if(EX.mode==='cg'){
+      var _hcg=JSON.parse(localStorage.getItem('exam-hist-cg-'+_pid)||'[]');
+      _hcg.unshift({sCG:EX.score.CG,tot:EX.score.CG,pct:Math.round(EX.score.CG/50*100),d:dateStr,abandoned:true,qi:EX.qi});
+      if(_hcg.length>5)_hcg.pop();
+      localStorage.setItem('exam-hist-cg-'+_pid,JSON.stringify(_hcg));
+      _examUpdateCardCG();
+    } else if(EX.mode==='lq'){
+      var _hlq=JSON.parse(localStorage.getItem('exam-hist-lq-'+_pid)||'[]');
+      _hlq.unshift({sLQ:EX.score.LQ,tot:EX.score.LQ,pct:Math.round(EX.score.LQ/50*100),d:dateStr,abandoned:true,qi:EX.qi});
+      if(_hlq.length>5)_hlq.pop();
+      localStorage.setItem('exam-hist-lq-'+_pid,JSON.stringify(_hlq));
+      _examUpdateCardLQ();
+    } else {
+      var sA=EX.score.A,sB=EX.score.B;
+      var _hm=JSON.parse(localStorage.getItem('exam-hist-math-'+_pid)||'[]');
+      _hm.unshift({sA:sA,sB:sB,tot:sA+sB,pct:Math.round((sA+sB)/50*100),d:dateStr,abandoned:true,qi:EX.qi,phase:EX.phase});
+      if(_hm.length>5)_hm.pop();
+      localStorage.setItem('exam-hist-math-'+_pid,JSON.stringify(_hm));
+      _examUpdateCard();
+    }
+  }
+  document.getElementById('exam-ov').classList.remove('open');
+  document.body.style.overflow='';
+  EX.phase=null; EX.finished=false;
+}
+function _examPhase(ph){
+  EX.phase=ph; EX.qi=0; EX.skipCount=0;
+  var pool=ph==='A'?EXAM_MATH_A_POOL:ph==='FR'?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL:[]):ph==='CG'?(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL:[]):ph==='LQ'?(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL:[]):EXAM_MATH_B_POOL;
+  if(!pool||!pool.length){
+    document.getElementById('exam-body').innerHTML='<p style="padding:24px 20px;color:#E63946;font-weight:700;">⚠️ Questions non chargées — rechargez la page (Ctrl+Shift+R).</p>';
+    return;
+  }
+  var count=ph==='A'?15:(ph==='FR'||ph==='CG'||ph==='LQ')?50:35;
+  EX.origCount=count;
+  EX.qs=shuffle(pool.slice()).slice(0,count).map(function(q){return {q:q,revisit:false};});
+  EX.timeLeft=ph==='A'?300:(ph==='FR'||ph==='CG')?1800:ph==='LQ'?2100:2100;
+  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':ph==='FR'?'Français — Grammaire & Vocabulaire':ph==='CG'?'Connaissances générales':ph==='LQ'?'Logique — Raisonnement':'Partie B — Mathématique';
+  document.getElementById('exam-qtot').textContent=count;
+  _examTick();
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.timerInterval=setInterval(function(){
+    EX.timeLeft--; _examTick();
+    if(EX.timeLeft<=0){
+      clearInterval(EX.timerInterval);
+      (EX.phase==='A'&&EX.mode==='math')?_examTransition():_examResults();
+    }
+  },1000);
+  _examShowQ(0);
+}
+function _examTick(){
+  var m=Math.floor(EX.timeLeft/60),s=EX.timeLeft%60;
+  var el=document.getElementById('exam-timer');
+  el.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  el.classList.toggle('urgent',EX.timeLeft<=60);
+}
+function _skipExam(){
+  EX.qs.push({q:EX.qs[EX.qi].q,revisit:true});
+  EX.skipCount++;
+  document.getElementById('exam-qtot').textContent=EX.qs.length;
+  _examShowQ(EX.qi+1);
+}
+function _examShowQ(i){
+  if(i>=EX.qs.length){ (EX.phase==='A'&&EX.mode==='math')?_examTransition():_examResults(); return; }
+  EX.qi=i;
+  var item=EX.qs[i], q=item.q, isRevisit=item.revisit;
+  document.getElementById('exam-qnum').textContent=i+1;
+  document.getElementById('exam-qtot').textContent=EX.qs.length;
+  document.getElementById('exam-pb').style.width=Math.round(i/EX.qs.length*100)+'%';
+  var last=(i+1>=EX.qs.length);
+  var L=['a)','b)','c)','d)'];
+  var opts=q.choices.map(function(c,ci){
+    return '<button class="q-choice _ec" onclick="_ansExam(this,\''+escJ(c)+'\',\''+escJ(q.answer)+'\','+i+')" style="--qc:#F97316;--ql:#FFF5EB">'+L[ci]+' '+c+'</button>';
+  }).join('');
+  var nxtLbl=last?((EX.phase==='A'&&EX.mode==='math')?'&#x27A1; Partie B':'&#x1F3C1; Résultats'):'Question suivante →';
+  var revisitBadge=isRevisit?'<span style="display:inline-block;background:#F59E0B;color:#fff;font-size:.68rem;font-weight:800;padding:2px 10px;border-radius:20px;margin-bottom:4px;">★ Révision</span><br>':'';
+  var aiTag=q.ai?'<span style="font-size:.64rem;color:var(--muted);font-weight:700;opacity:.7"> [IA]</span>':'';
+  var skipBtn=!isRevisit
+    ?'<button onclick="_skipExam()" style="padding:8px 18px;border-radius:20px;border:2px dashed #F59E0B;background:transparent;color:#b45309;font-size:.85rem;font-weight:700;cursor:pointer;">⏭ Passer</button>'
+    :'';
+  var graphicHtml=q.graphic?'<div class="q-graphic">'+q.graphic+'</div>':'';
+  var html='<div class="q-blk">'
+    +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' — '+(EX.phase==='A'?'Partie A (calcul mental)':EX.phase==='FR'?'Français':EX.phase==='CG'?'Connaissances générales':EX.phase==='LQ'?'Logique':'Partie B')+aiTag+'</div>'
+    +'<div class="q-txt">'+q.q+'</div>'
+    +graphicHtml
+    +'<div class="q-choices">'+opts+'</div>'
+    +'<div id="eskip-'+i+'" style="margin:6px 0 2px">'+skipBtn+'</div>'
+    +'<div class="q-fb" id="efb-'+i+'"></div>'
+    +'<div class="sol-wrap"><div class="sol-box" id="esol-'+i+'">&#x1F4A1; '+q.sol+'</div></div>'
+    +'<div class="q-nav" id="enav-'+i+'" style="display:none">'
+      +'<button class="btn-nxt" onclick="_examShowQ('+(i+1)+')" style="background:#F97316">'+nxtLbl+'</button>'
+    +'</div>'
+  +'</div>';
+  document.getElementById('exam-body').innerHTML=html;
+  document.getElementById('exam-modal').scrollTop=0;
+}
+function _ansExam(btn,chosen,correct,i){
+  var ok=(chosen.trim()===correct.trim());
+  btn.classList.add(ok?'correct':'wrong');
+  if(!ok){
+    [].slice.call(document.querySelectorAll('._ec')).forEach(function(b){
+      if(b!==btn&&b.textContent.replace(/^[a-d]\) /,'').trim()===correct.trim()) b.classList.add('showc');
+    });
+  }
+  [].slice.call(document.querySelectorAll('._ec')).forEach(function(b){b.disabled=true;});
+  if(ok) EX.score[EX.phase]++;
+  var skipEl=document.getElementById('eskip-'+i); if(skipEl) skipEl.style.display='none';
+  var fb=document.getElementById('efb-'+i);
+  fb.className='q-fb show '+(ok?'ok':'bad');
+  fb.textContent=ok?'✅ Bonne réponse !':'❌ La bonne réponse : '+correct;
+  var sol=document.getElementById('esol-'+i); if(sol) sol.classList.add('show');
+  document.getElementById('enav-'+i).style.display='flex';
+}
+function _examTransition(){
+  clearInterval(EX.timerInterval);
+  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:6px;">⏭ '+EX.skipCount+' question(s) passée(s) et révisée(s)</p>':'';
+  document.getElementById('exam-body').innerHTML=
+    '<div style="text-align:center;padding:32px 16px;">'
+    +'<div style="font-size:3rem;margin-bottom:12px;">&#x23F1;&#xFE0F;</div>'
+    +'<h2 style="font-family:\'Fredoka One\',sans-serif;font-size:1.6rem;margin-bottom:8px;">Partie A terminée !</h2>'
+    +'<p style="font-size:1rem;font-weight:700;color:var(--muted);margin-bottom:6px;">Score : <strong style="color:#F97316">'+EX.score.A+' / 15</strong></p>'
+    +skipInfo
+    +'<p style="font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:24px;">La Partie B commence maintenant. 35 questions · 35 minutes.</p>'
+    +'<button onclick="_examPhase(\'B\')" style="padding:14px 32px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1.1rem;cursor:pointer;">Commencer la Partie B →</button>'
+    +'</div>';
+}
+function _examResults(){
+  clearInterval(EX.timerInterval);
+  EX.finished=true;
+  var isFR=(EX.mode==='francais'), isCG=(EX.mode==='cg'), isLQ=(EX.mode==='lq');
+  var sA=EX.score.A,sB=EX.score.B,sFR=EX.score.FR,sCG=EX.score.CG,sLQ=EX.score.LQ;
+  var tot=isFR?sFR:isCG?sCG:isLQ?sLQ:(sA+sB),pct=Math.round(tot/50*100);
+  var g=pct>=80?{e:'🏆',l:'Excellent !',c:'#1B9E78'}
+       :pct>=65?{e:'🌟',l:'Très bien !',c:'#4361EE'}
+       :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
+               :{e:'📚',l:'Continue !',c:'#E63946'};
+  var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  var _pid=ProfileManager.getActiveId()||'default';
+  if(isFR){
+    var _hfr=JSON.parse(localStorage.getItem('exam-hist-fr-'+_pid)||'[]');
+    _hfr.unshift({sFR:sFR,tot:tot,pct:pct,d:dateStr});
+    if(_hfr.length>5)_hfr.pop();
+    localStorage.setItem('exam-hist-fr-'+_pid,JSON.stringify(_hfr));
+    _examUpdateCardFR();
+  } else if(isCG){
+    var _hcg=JSON.parse(localStorage.getItem('exam-hist-cg-'+_pid)||'[]');
+    _hcg.unshift({sCG:sCG,tot:tot,pct:pct,d:dateStr});
+    if(_hcg.length>5)_hcg.pop();
+    localStorage.setItem('exam-hist-cg-'+_pid,JSON.stringify(_hcg));
+    _examUpdateCardCG();
+  } else if(isLQ){
+    var _hlq=JSON.parse(localStorage.getItem('exam-hist-lq-'+_pid)||'[]');
+    _hlq.unshift({sLQ:sLQ,tot:tot,pct:pct,d:dateStr});
+    if(_hlq.length>5)_hlq.pop();
+    localStorage.setItem('exam-hist-lq-'+_pid,JSON.stringify(_hlq));
+    _examUpdateCardLQ();
+  } else {
+    var _hm=JSON.parse(localStorage.getItem('exam-hist-math-'+_pid)||'[]');
+    _hm.unshift({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr});
+    if(_hm.length>5)_hm.pop();
+    localStorage.setItem('exam-hist-math-'+_pid,JSON.stringify(_hm));
+    _examUpdateCard();
+  }
+  var nAI=isFR
+    ?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.filter(function(q){return!!q.ai;}).length:0)
+    :isCG?(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.filter(function(q){return!!q.ai;}).length:0)
+    :isLQ?(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL.filter(function(q){return!!q.ai;}).length:0)
+    :(EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length);
+  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:8px;">⏭ '+EX.skipCount+' question(s) passée(s)</p>':'';
+  var scoreGrid=isFR
+    ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4361EE">'+sFR+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Français — Grammaire &amp; Vocabulaire</div></div>'
+    :isCG?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#1B9E78">'+sCG+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Connaissances g&eacute;n&eacute;rales</div></div>'
+    :isLQ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4F46E5">'+sLQ+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Logique &mdash; Raisonnement</div></div>'
+    :'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A — Calcul mental</div></div>'
+     +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B — Mathématique</div></div>';
+  var restartFn=isFR?'startExamFR()':isCG?'startExamCG()':isLQ?'startExamLQ()':'startExam()';
+  var restartBg=isFR?'linear-gradient(135deg,#4361EE,#7C3AED)':isCG?'linear-gradient(135deg,#1B9E78,#10B981)':isLQ?'linear-gradient(135deg,#4F46E5,#7C3AED)':'linear-gradient(135deg,#F59E0B,#F97316)';
+  var poolInfo=isFR
+    ?'Banque : '+(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
+    :isCG?'Banque : '+(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
+    :isLQ?'Banque : '+(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
+    :'Banque : '+EXAM_MATH_A_POOL.length+' q·A &middot; '+EXAM_MATH_B_POOL.length+' q·B &middot; '+nAI+' générées par IA';
+  document.getElementById('exam-body').innerHTML=
+    '<div style="text-align:center;padding:20px 0 10px">'
+    +'<div style="width:120px;height:120px;border-radius:50%;margin:0 auto 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:6px solid '+g.c+';color:'+g.c+'">'
+    +'<span style="font-family:\'Fredoka One\',sans-serif;font-size:2.1rem;line-height:1">'+pct+'<span style="font-size:1rem">%</span></span>'
+    +'<span style="font-size:.7rem;font-weight:800">'+tot+'/50</span></div>'
+    +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:1.8rem;margin-bottom:8px;">'+g.e+' '+g.l+'</div>'
+    +skipInfo
+    +'<div style="display:grid;grid-template-columns:'+((isFR||isCG||isLQ)?'1fr':'1fr 1fr')+';gap:10px;margin:14px 0;text-align:left">'
+    +scoreGrid
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;">'
+    +'<button onclick="'+restartFn+'" style="padding:12px 24px;border-radius:30px;border:none;background:'+restartBg+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">🔁 Recommencer</button>'
+    +((isFR||isCG||isLQ)?'':'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>')
+    +'<button onclick="closeExam()" style="padding:12px 20px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.9rem;cursor:pointer;">← Retour</button>'
+    +'</div>'
+    +'<p style="font-size:.7rem;color:var(--muted);font-weight:600;">'+poolInfo+'</p>'
+    +'</div>';
+}
+function _downloadExamQs(){
+  var content='// Examen d\'admission — PFEQ Québec\n'
+    +'// Téléchargé le : '+new Date().toLocaleDateString('fr-CA')+'\n'
+    +'// Pool A : '+EXAM_MATH_A_POOL.length+' questions ('+EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+' IA)\n'
+    +'// Pool B : '+EXAM_MATH_B_POOL.length+' questions ('+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length+' IA)\n'
+    +'var EXAM_MATH_A_POOL='+JSON.stringify(EXAM_MATH_A_POOL,null,2)+';\n'
+    +'var EXAM_MATH_B_POOL='+JSON.stringify(EXAM_MATH_B_POOL,null,2)+';\n';
+  var blob=new Blob([content],{type:'text/javascript'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='questions_exam.js';
+  a.click();
+  toast('📥 questions_exam.js sauvegardé ('+(EXAM_MATH_A_POOL.length+EXAM_MATH_B_POOL.length)+' questions)');
+}
+function _examUpdateCard(){
+  var pid=ProfileManager.getActiveId()||'default';
+  var hist=JSON.parse(localStorage.getItem('exam-hist-math-'+pid)||'null');
+  if(!hist){var _old=localStorage.getItem('exam-last-'+pid);if(_old)hist=[JSON.parse(_old)];}
+  var el=document.getElementById('exam-last-score'); if(!el) return;
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
+  el.style.display='block';
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EDFAEB'; el.style.color='#0A6B51';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
+  }
+}
+function _examUpdateCardFR(){
+  var pid=ProfileManager.getActiveId()||'default';
+  var hist=JSON.parse(localStorage.getItem('exam-hist-fr-'+pid)||'null');
+  if(!hist){var _old=localStorage.getItem('exam-fr-last-'+pid);if(_old)hist=[JSON.parse(_old)];}
+  var el=document.getElementById('exam-fr-last-score'); if(!el) return;
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
+  el.style.display='block';
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EDFAEB'; el.style.color='#0A6B51';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+  }
+}
+
+function _examUpdateCardCG(){
+  var pid=ProfileManager.getActiveId()||'default';
+  var hist=JSON.parse(localStorage.getItem('exam-hist-cg-'+pid)||'null');
+  var el=document.getElementById('exam-cg-last-score'); if(!el) return;
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
+  el.style.display='block';
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EDFAEB'; el.style.color='#0A6B51';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+  }
+}
+
+function _examUpdateCardLQ(){
+  var pid=ProfileManager.getActiveId()||'default';
+  var hist=JSON.parse(localStorage.getItem('exam-hist-lq-'+pid)||'null');
+  var el=document.getElementById('exam-lq-last-score'); if(!el) return;
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
+  el.style.display='block';
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EEF2FF'; el.style.color='#3730A3';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+  }
+}
+
+// ---- IMPORT questions_exam.js -----------------------------------
+function _importExamQs(){
+  var input=document.createElement('input');
+  input.type='file'; input.accept='.js';
+  input.onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(evt){
+      try {
+        // Execute the file in an isolated function scope to capture the pool variables
+        var fn=new Function(
+          evt.target.result+
+          '\nreturn [typeof EXAM_MATH_A_POOL!=="undefined"?EXAM_MATH_A_POOL:null,'+
+                  'typeof EXAM_MATH_B_POOL!=="undefined"?EXAM_MATH_B_POOL:null];'
+        );
+        var res=fn();
+        if(!res[0]||!res[1]) throw new Error('Tableaux EXAM_MATH_A_POOL / EXAM_MATH_B_POOL introuvables');
+        EXAM_MATH_A_POOL=res[0];
+        EXAM_MATH_B_POOL=res[1];
+        var nAI=EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length
+              +EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length;
+        toast('✅ Importé : '+EXAM_MATH_A_POOL.length+' q·A + '+EXAM_MATH_B_POOL.length+' q·B ('+nAI+' IA)');
+      } catch(err){
+        toast('❌ Import échoué : '+err.message);
+      }
+    };
+    reader.readAsText(file,'utf-8');
+  };
+  input.click();
+}
+
 // ---- INIT -------------------------------------------------------
 updateBar(); updateAkBar();
 buildCards(SEC1,'sec1-grid','sec1');
 showPriGrade('pri1');
+_examUpdateCard();
+_examUpdateCardFR();
+_examUpdateCardCG();
+_examUpdateCardLQ();
 
 // Profile init — sync from cloud, then load active profile or show selector
 (function initProfiles() {
@@ -1418,5 +1793,6 @@ showPriGrade('pri1');
   });
 })();
 </script>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2331</div>
 </body>
 </html>
