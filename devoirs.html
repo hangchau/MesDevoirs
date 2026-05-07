@@ -1040,28 +1040,29 @@ function renderParentProfile(id){
     +'</div>';
 
   // ---- Examen d'admission results ----
-  var examMath=JSON.parse(localStorage.getItem('exam-last-'+id)||'null');
-  var examFR=JSON.parse(localStorage.getItem('exam-fr-last-'+id)||'null');
-  if(examMath||examFR){
+  var histMath=JSON.parse(localStorage.getItem('exam-hist-math-'+id)||'null');
+  if(!histMath){var _om=localStorage.getItem('exam-last-'+id);if(_om)histMath=[JSON.parse(_om)];}
+  var histFR=JSON.parse(localStorage.getItem('exam-hist-fr-'+id)||'null');
+  if(!histFR){var _of=localStorage.getItem('exam-fr-last-'+id);if(_of)histFR=[JSON.parse(_of)];}
+  var hasMath=histMath&&histMath.length, hasFR=histFR&&histFR.length;
+  if(hasMath||hasFR){
     html+='<div style="background:#FFF8EE;border:1.5px solid #F4A261;border-radius:14px;padding:14px 16px;margin-bottom:16px;">'
-      +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:.95rem;color:#b45309;margin-bottom:10px;">\ud83c\udf93 Examen d\'admission \u2014 dernier r\u00e9sultat</div>';
-    if(examMath){
-      var mc=examMath.abandoned?'#C0392B':examMath.pct>=75?'#1B9E78':examMath.pct>=50?'#F4A261':'#E63946';
-      var mTxt=examMath.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+examMath.qi+' q.)':examMath.tot+'/50 \u00b7 '+examMath.pct+'% &mdash; A:'+examMath.sA+'/15 &middot; B:'+examMath.sB+'/35';
-      html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:.83rem;font-weight:700;padding:6px 0;border-bottom:1px solid #FFE8CC;">'
-        +'<span>\ud83d\udccf Math\u00e9matique</span>'
-        +'<span style="color:'+mc+'">'+mTxt+'</span>'
-        +'</div>'
-        +'<div style="font-size:.72rem;color:var(--muted);font-weight:700;text-align:right;padding-top:2px">'+examMath.d+'</div>';
+      +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:.95rem;color:#b45309;margin-bottom:10px;">\ud83c\udf93 Examen d\'admission</div>';
+    if(hasMath){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin-bottom:5px;">\ud83d\udccf Math\u00e9matique</div>';
+      histMath.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'% \u2014 A:'+r.sA+'/15 \u00b7 B:'+r.sB+'/35';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
     }
-    if(examFR){
-      var fc=examFR.abandoned?'#C0392B':examFR.pct>=75?'#1B9E78':examFR.pct>=50?'#F4A261':'#E63946';
-      var fTxt=examFR.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+examFR.qi+' q.)':examFR.tot+'/50 \u00b7 '+examFR.pct+'%';
-      html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:.83rem;font-weight:700;padding:6px 0;'+(examMath?'margin-top:8px':'')+'">'
-        +'<span>\ud83d\udcdd Fran\u00e7ais</span>'
-        +'<span style="color:'+fc+'">'+fTxt+'</span>'
-        +'</div>'
-        +'<div style="font-size:.72rem;color:var(--muted);font-weight:700;text-align:right;padding-top:2px">'+examFR.d+'</div>';
+    if(hasFR){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:'+(hasMath?'12':'0')+'px 0 5px;">\ud83d\udcdd Fran\u00e7ais</div>';
+      histFR.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'%';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
     }
     html+='</div>';
   }
@@ -1387,11 +1388,17 @@ function closeExam(){
     var _pid=ProfileManager.getActiveId()||'default';
     var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     if(EX.mode==='francais'){
-      localStorage.setItem('exam-fr-last-'+_pid,JSON.stringify({sFR:EX.score.FR,tot:EX.score.FR,pct:Math.round(EX.score.FR/50*100),d:dateStr,abandoned:true,qi:EX.qi}));
+      var _hfr=JSON.parse(localStorage.getItem('exam-hist-fr-'+_pid)||'[]');
+      _hfr.unshift({sFR:EX.score.FR,tot:EX.score.FR,pct:Math.round(EX.score.FR/50*100),d:dateStr,abandoned:true,qi:EX.qi});
+      if(_hfr.length>5)_hfr.pop();
+      localStorage.setItem('exam-hist-fr-'+_pid,JSON.stringify(_hfr));
       _examUpdateCardFR();
     } else {
       var sA=EX.score.A,sB=EX.score.B;
-      localStorage.setItem('exam-last-'+_pid,JSON.stringify({sA:sA,sB:sB,tot:sA+sB,pct:Math.round((sA+sB)/50*100),d:dateStr,abandoned:true,qi:EX.qi,phase:EX.phase}));
+      var _hm=JSON.parse(localStorage.getItem('exam-hist-math-'+_pid)||'[]');
+      _hm.unshift({sA:sA,sB:sB,tot:sA+sB,pct:Math.round((sA+sB)/50*100),d:dateStr,abandoned:true,qi:EX.qi,phase:EX.phase});
+      if(_hm.length>5)_hm.pop();
+      localStorage.setItem('exam-hist-math-'+_pid,JSON.stringify(_hm));
       _examUpdateCard();
     }
   }
@@ -1512,10 +1519,16 @@ function _examResults(){
   var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   var _pid=ProfileManager.getActiveId()||'default';
   if(isFR){
-    localStorage.setItem('exam-fr-last-'+_pid,JSON.stringify({sFR:sFR,tot:tot,pct:pct,d:dateStr}));
+    var _hfr=JSON.parse(localStorage.getItem('exam-hist-fr-'+_pid)||'[]');
+    _hfr.unshift({sFR:sFR,tot:tot,pct:pct,d:dateStr});
+    if(_hfr.length>5)_hfr.pop();
+    localStorage.setItem('exam-hist-fr-'+_pid,JSON.stringify(_hfr));
     _examUpdateCardFR();
   } else {
-    localStorage.setItem('exam-last-'+_pid,JSON.stringify({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr}));
+    var _hm=JSON.parse(localStorage.getItem('exam-hist-math-'+_pid)||'[]');
+    _hm.unshift({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr});
+    if(_hm.length>5)_hm.pop();
+    localStorage.setItem('exam-hist-math-'+_pid,JSON.stringify(_hm));
     _examUpdateCard();
   }
   var nAI=isFR
@@ -1565,10 +1578,11 @@ function _downloadExamQs(){
 }
 function _examUpdateCard(){
   var pid=ProfileManager.getActiveId()||'default';
-  var raw=localStorage.getItem('exam-last-'+pid);
+  var hist=JSON.parse(localStorage.getItem('exam-hist-math-'+pid)||'null');
+  if(!hist){var _old=localStorage.getItem('exam-last-'+pid);if(_old)hist=[JSON.parse(_old)];}
   var el=document.getElementById('exam-last-score'); if(!el) return;
-  if(!raw){el.style.display='none';return;}
-  var d=JSON.parse(raw);
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
   el.style.display='block';
   if(d.abandoned){
     el.style.background='#FFF0F0'; el.style.color='#C0392B';
@@ -1580,10 +1594,11 @@ function _examUpdateCard(){
 }
 function _examUpdateCardFR(){
   var pid=ProfileManager.getActiveId()||'default';
-  var raw=localStorage.getItem('exam-fr-last-'+pid);
+  var hist=JSON.parse(localStorage.getItem('exam-hist-fr-'+pid)||'null');
+  if(!hist){var _old=localStorage.getItem('exam-fr-last-'+pid);if(_old)hist=[JSON.parse(_old)];}
   var el=document.getElementById('exam-fr-last-score'); if(!el) return;
-  if(!raw){el.style.display='none';return;}
-  var d=JSON.parse(raw);
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
   el.style.display='block';
   if(d.abandoned){
     el.style.background='#FFF0F0'; el.style.color='#C0392B';
@@ -1649,6 +1664,6 @@ _examUpdateCardFR();
   });
 })();
 </script>
-<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2156</div>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2207</div>
 </body>
 </html>
