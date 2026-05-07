@@ -1196,6 +1196,8 @@ function selectProfile(id) {
   if (data) { stats = data.stats; hist = data.hist; }
   updateBar();
   updateProfPill();
+  _examUpdateCard();
+  _examUpdateCardFR();
   closeProfileSelector();
   toast('\ud83d\udc4b Bonjour\u00a0'+ProfileManager.getActive().name+'\u00a0!');
 }
@@ -1428,11 +1430,12 @@ function _examResults(){
        :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
                :{e:'📚',l:'Continue !',c:'#E63946'};
   var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  var _pid=ProfileManager.getActiveId()||'default';
   if(isFR){
-    localStorage.setItem('exam-fr-last',JSON.stringify({sFR:sFR,tot:tot,pct:pct,d:dateStr}));
+    localStorage.setItem('exam-fr-last-'+_pid,JSON.stringify({sFR:sFR,tot:tot,pct:pct,d:dateStr}));
     _examUpdateCardFR();
   } else {
-    localStorage.setItem('exam-last',JSON.stringify({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr}));
+    localStorage.setItem('exam-last-'+_pid,JSON.stringify({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr}));
     _examUpdateCard();
   }
   var nAI=isFR
@@ -1481,14 +1484,20 @@ function _downloadExamQs(){
   toast('📥 questions_exam.js sauvegardé ('+(EXAM_MATH_A_POOL.length+EXAM_MATH_B_POOL.length)+' questions)');
 }
 function _examUpdateCard(){
-  var raw=localStorage.getItem('exam-last'); if(!raw) return;
-  var d=JSON.parse(raw), el=document.getElementById('exam-last-score'); if(!el) return;
+  var pid=ProfileManager.getActiveId()||'default';
+  var raw=localStorage.getItem('exam-last-'+pid);
+  var el=document.getElementById('exam-last-score'); if(!el) return;
+  if(!raw){el.style.display='none';return;}
+  var d=JSON.parse(raw);
   el.style.display='block';
   el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
 }
 function _examUpdateCardFR(){
-  var raw=localStorage.getItem('exam-fr-last'); if(!raw) return;
-  var d=JSON.parse(raw), el=document.getElementById('exam-fr-last-score'); if(!el) return;
+  var pid=ProfileManager.getActiveId()||'default';
+  var raw=localStorage.getItem('exam-fr-last-'+pid);
+  var el=document.getElementById('exam-fr-last-score'); if(!el) return;
+  if(!raw){el.style.display='none';return;}
+  var d=JSON.parse(raw);
   el.style.display='block';
   el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
 }
