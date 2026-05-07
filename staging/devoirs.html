@@ -13,7 +13,7 @@
 <script src="data_subjects.js?v=20260506"></script>
 <script src="questions_sec1.js?v=20260506"></script>
 <script src="questions_pri5.js?v=20260506"></script>
-<script src="questions_exam.js?v=20260506b"></script>
+<script src="questions_exam.js?v=20260506c"></script>
 <script src="profiles.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
@@ -265,6 +265,8 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
 #exam-pb-bg{height:5px;background:#FDE68A;border-radius:4px;overflow:hidden;}
 #exam-pb{height:100%;border-radius:4px;background:linear-gradient(90deg,#F59E0B,#F97316);transition:width .4s;}
 #exam-body{padding:16px 24px 28px;}
+.q-graphic{background:#F8F9FF;border:1.5px solid #E0E4FF;border-radius:12px;padding:12px;margin:10px 0 14px;text-align:center;overflow:hidden;}
+.q-graphic svg{max-width:100%;height:auto;display:block;margin:0 auto;}
 </style>
 </head>
 <body>
@@ -1347,9 +1349,11 @@ function _examShowQ(i){
   var skipBtn=!isRevisit
     ?'<button onclick="_skipExam()" style="padding:8px 18px;border-radius:20px;border:2px dashed #F59E0B;background:transparent;color:#b45309;font-size:.85rem;font-weight:700;cursor:pointer;">⏭ Passer</button>'
     :'';
+  var graphicHtml=q.graphic?'<div class="q-graphic">'+q.graphic+'</div>':'';
   var html='<div class="q-blk">'
     +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' — '+(EX.phase==='A'?'Partie A (calcul mental)':'Partie B')+aiTag+'</div>'
     +'<div class="q-txt">'+q.q+'</div>'
+    +graphicHtml
     +'<div class="q-choices">'+opts+'</div>'
     +'<div id="eskip-'+i+'" style="margin:6px 0 2px">'+skipBtn+'</div>'
     +'<div class="q-fb" id="efb-'+i+'"></div>'
