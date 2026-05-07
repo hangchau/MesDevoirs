@@ -284,9 +284,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div class="stat-pill"><span class="dot ds"></span>S&#233;rie&nbsp;: <strong id="st-streak">0</strong></div>
   <button id="prof-pill" onclick="openProfileSelector()">&#x1F464; Choisir profil</button>
   <button id="btn-parent" onclick="openParent()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:30px;font-size:.82rem;font-weight:800;background:#EEF0FF;color:#5B4FCF;border:1.5px solid #9B91E0;cursor:pointer;box-shadow:var(--shadow);">&#x1F4CA; Parents</button>
-  <button id="btn-rst" onclick="resetStats()">&#x1F5D1; R&#233;init.</button>
   <button id="btn-export" class="stat-pill" onclick="exportQuestionsDB()" style="cursor:pointer;border:1.5px solid #1B9E78;background:#EDFAEB;color:#0A6B51;font-size:.78rem;font-weight:800;">&#x1F4E5; Exporter BD</button>
-  <div id="ak-bar"></div>
 </div>
 
 <div class="tabs">
@@ -410,6 +408,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
   <div id="parent-box">
     <div id="parent-hd">
       <h2>&#x1F4CA; Tableau de bord &mdash; Parents</h2>
+      <div id="ak-bar"></div>
       <button onclick="_importExamQs()" style="font-size:.75rem;color:var(--muted);background:none;border:1.5px solid #d0d0d0;border-radius:20px;cursor:pointer;font-weight:700;padding:4px 10px;">&#x1F4C2; Importer</button>
       <button class="parent-close" onclick="closeParent()">&#x2715;</button>
     </div>
@@ -1025,6 +1024,7 @@ function renderParentProfile(id){
   document.querySelectorAll('.ptab').forEach(function(b){b.classList.toggle('active',b.dataset.id===id);});
   var phist=p.hist||{};
   var data=_gradeDataFor(p.grade);
+  var _GL={sec1:'Secondaire 1',pri1:'1re ann\u00e9e',pri2:'2e ann\u00e9e',pri3:'3e ann\u00e9e',pri4:'4e ann\u00e9e',pri5:'5e ann\u00e9e',pri6:'6e ann\u00e9e',both:'Les deux'};
 
   // overall avg
   var sc=0,cnt=0;
@@ -1039,8 +1039,33 @@ function renderParentProfile(id){
     +(avg!==null?'<div style="margin-left:auto;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:2rem;color:'+avgCol+'">'+avg+'%</div><div style="font-size:.7rem;font-weight:800;color:var(--muted)">moyenne g\u00e9n\u00e9rale</div></div>':'')
     +'</div>';
 
+  // ---- Examen d'admission results ----
+  var examMath=JSON.parse(localStorage.getItem('exam-last-'+id)||'null');
+  var examFR=JSON.parse(localStorage.getItem('exam-fr-last-'+id)||'null');
+  if(examMath||examFR){
+    html+='<div style="background:#FFF8EE;border:1.5px solid #F4A261;border-radius:14px;padding:14px 16px;margin-bottom:16px;">'
+      +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:.95rem;color:#b45309;margin-bottom:10px;">\ud83c\udf93 Examen d\'admission \u2014 dernier r\u00e9sultat</div>';
+    if(examMath){
+      var mc=examMath.pct>=75?'#1B9E78':examMath.pct>=50?'#F4A261':'#E63946';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:.83rem;font-weight:700;padding:6px 0;border-bottom:1px solid #FFE8CC;">'
+        +'<span>\ud83d\udccf Math\u00e9matique</span>'
+        +'<span style="color:'+mc+'">'+examMath.tot+'/50 \u00b7 '+examMath.pct+'% &mdash; A:'+examMath.sA+'/15 &middot; B:'+examMath.sB+'/35</span>'
+        +'</div>'
+        +'<div style="font-size:.72rem;color:var(--muted);font-weight:700;text-align:right;padding-top:2px">'+examMath.d+'</div>';
+    }
+    if(examFR){
+      var fc=examFR.pct>=75?'#1B9E78':examFR.pct>=50?'#F4A261':'#E63946';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:.83rem;font-weight:700;padding:6px 0;'+(examMath?'margin-top:8px':'')+'">'
+        +'<span>\ud83d\udcdd Fran\u00e7ais</span>'
+        +'<span style="color:'+fc+'">'+examFR.tot+'/50 \u00b7 '+examFR.pct+'%</span>'
+        +'</div>'
+        +'<div style="font-size:.72rem;color:var(--muted);font-weight:700;text-align:right;padding-top:2px">'+examFR.d+'</div>';
+    }
+    html+='</div>';
+  }
+
+  // ---- Current grade subjects ----
   if(!data){
-    // "both" or unknown: show all available sessions from hist
     html+='<p style="color:var(--muted);font-weight:700;text-align:center;padding:24px">S\u00e9lectionnez un niveau sp\u00e9cifique dans le profil pour voir la d\u00e9composition par mati\u00e8re.</p>';
     var allKeys=Object.keys(phist);
     if(allKeys.length){
@@ -1053,6 +1078,7 @@ function renderParentProfile(id){
       html+='</div>';
     }
   } else {
+    html+='<div style="font-family:\'Fredoka One\',sans-serif;font-size:.88rem;color:#5B4FCF;margin-bottom:10px;">\ud83d\udcda '+(_GL[p.grade]||p.grade)+' \u2014 Ann\u00e9e courante</div>';
     html+='<div class="par-grid">';
     data.forEach(function(s,i){
       var key=p.grade+'_'+i;
@@ -1061,6 +1087,45 @@ function renderParentProfile(id){
     });
     html+='</div>';
   }
+
+  // ---- Previous school years ----
+  var currentPrefix=p.grade+'_';
+  var otherByGrade={};
+  Object.keys(phist).forEach(function(key){
+    if(key.indexOf(currentPrefix)!==0){
+      var lastUs=key.lastIndexOf('_');
+      var grade=lastUs>-1?key.substring(0,lastUs):key;
+      if(!otherByGrade[grade]) otherByGrade[grade]=[];
+      otherByGrade[grade].push(key);
+    }
+  });
+  var otherGrades=Object.keys(otherByGrade).filter(function(g){
+    return otherByGrade[g].some(function(k){return phist[k]&&phist[k].length;});
+  });
+  if(otherGrades.length){
+    html+='<details style="margin-top:18px;border:1.5px solid #E0E0E0;border-radius:14px;overflow:hidden;">'
+      +'<summary style="padding:12px 16px;font-family:\'Fredoka One\',sans-serif;font-size:.95rem;cursor:pointer;background:#FAFAFA;list-style:none;display:flex;justify-content:space-between;align-items:center;">'
+      +'\ud83d\udcc5 Ann\u00e9es pr\u00e9c\u00e9dentes'
+      +'<span style="font-size:.75rem;font-weight:800;color:var(--muted)">'+otherGrades.length+' niveau(x)</span></summary>'
+      +'<div style="padding:12px 16px">';
+    otherGrades.forEach(function(grade){
+      var gradeData=_gradeDataFor(grade);
+      html+='<div style="font-family:\'Fredoka One\',sans-serif;font-size:.85rem;color:#1B9E78;margin:12px 0 8px;">\ud83d\udcda '+(_GL[grade]||grade)+'</div>';
+      html+='<div class="par-grid">';
+      otherByGrade[grade].forEach(function(key){
+        var sessions=phist[key]||[];
+        if(!sessions.length) return;
+        var lastUs=key.lastIndexOf('_');
+        var idx=lastUs>-1?parseInt(key.substring(lastUs+1)):NaN;
+        var subjectDef=gradeData&&!isNaN(idx)?gradeData[idx]:null;
+        var label=subjectDef?subjectDef.t:key;
+        html+=_renderParSubj(key,label,sessions,subjectDef);
+      });
+      html+='</div>';
+    });
+    html+='</div></details>';
+  }
+
   document.getElementById('parent-content').innerHTML=html;
 }
 
