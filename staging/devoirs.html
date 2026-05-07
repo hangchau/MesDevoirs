@@ -1046,18 +1046,20 @@ function renderParentProfile(id){
     html+='<div style="background:#FFF8EE;border:1.5px solid #F4A261;border-radius:14px;padding:14px 16px;margin-bottom:16px;">'
       +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:.95rem;color:#b45309;margin-bottom:10px;">\ud83c\udf93 Examen d\'admission \u2014 dernier r\u00e9sultat</div>';
     if(examMath){
-      var mc=examMath.pct>=75?'#1B9E78':examMath.pct>=50?'#F4A261':'#E63946';
+      var mc=examMath.abandoned?'#C0392B':examMath.pct>=75?'#1B9E78':examMath.pct>=50?'#F4A261':'#E63946';
+      var mTxt=examMath.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+examMath.qi+' q.)':examMath.tot+'/50 \u00b7 '+examMath.pct+'% &mdash; A:'+examMath.sA+'/15 &middot; B:'+examMath.sB+'/35';
       html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:.83rem;font-weight:700;padding:6px 0;border-bottom:1px solid #FFE8CC;">'
         +'<span>\ud83d\udccf Math\u00e9matique</span>'
-        +'<span style="color:'+mc+'">'+examMath.tot+'/50 \u00b7 '+examMath.pct+'% &mdash; A:'+examMath.sA+'/15 &middot; B:'+examMath.sB+'/35</span>'
+        +'<span style="color:'+mc+'">'+mTxt+'</span>'
         +'</div>'
         +'<div style="font-size:.72rem;color:var(--muted);font-weight:700;text-align:right;padding-top:2px">'+examMath.d+'</div>';
     }
     if(examFR){
-      var fc=examFR.pct>=75?'#1B9E78':examFR.pct>=50?'#F4A261':'#E63946';
+      var fc=examFR.abandoned?'#C0392B':examFR.pct>=75?'#1B9E78':examFR.pct>=50?'#F4A261':'#E63946';
+      var fTxt=examFR.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+examFR.qi+' q.)':examFR.tot+'/50 \u00b7 '+examFR.pct+'%';
       html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:.83rem;font-weight:700;padding:6px 0;'+(examMath?'margin-top:8px':'')+'">'
         +'<span>\ud83d\udcdd Fran\u00e7ais</span>'
-        +'<span style="color:'+fc+'">'+examFR.tot+'/50 \u00b7 '+examFR.pct+'%</span>'
+        +'<span style="color:'+fc+'">'+fTxt+'</span>'
         +'</div>'
         +'<div style="font-size:.72rem;color:var(--muted);font-weight:700;text-align:right;padding-top:2px">'+examFR.d+'</div>';
     }
@@ -1363,7 +1365,7 @@ resetStats = function() {
 };
 
 
-var EX={phase:null,mode:null,qi:0,score:{A:0,B:0,FR:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0};
+var EX={phase:null,mode:null,qi:0,score:{A:0,B:0,FR:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0,finished:false};
 
 function startExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
@@ -1381,9 +1383,21 @@ function startExamFR(){
 }
 function closeExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
+  if(EX.phase!==null && !EX.finished){
+    var _pid=ProfileManager.getActiveId()||'default';
+    var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    if(EX.mode==='francais'){
+      localStorage.setItem('exam-fr-last-'+_pid,JSON.stringify({sFR:EX.score.FR,tot:EX.score.FR,pct:Math.round(EX.score.FR/50*100),d:dateStr,abandoned:true,qi:EX.qi}));
+      _examUpdateCardFR();
+    } else {
+      var sA=EX.score.A,sB=EX.score.B;
+      localStorage.setItem('exam-last-'+_pid,JSON.stringify({sA:sA,sB:sB,tot:sA+sB,pct:Math.round((sA+sB)/50*100),d:dateStr,abandoned:true,qi:EX.qi,phase:EX.phase}));
+      _examUpdateCard();
+    }
+  }
   document.getElementById('exam-ov').classList.remove('open');
   document.body.style.overflow='';
-  EX.phase=null;
+  EX.phase=null; EX.finished=false;
 }
 function _examPhase(ph){
   EX.phase=ph; EX.qi=0; EX.skipCount=0;
@@ -1487,6 +1501,7 @@ function _examTransition(){
 }
 function _examResults(){
   clearInterval(EX.timerInterval);
+  EX.finished=true;
   var isFR=(EX.mode==='francais');
   var sA=EX.score.A,sB=EX.score.B,sFR=EX.score.FR;
   var tot=isFR?sFR:(sA+sB),pct=Math.round(tot/50*100);
@@ -1555,7 +1570,13 @@ function _examUpdateCard(){
   if(!raw){el.style.display='none';return;}
   var d=JSON.parse(raw);
   el.style.display='block';
-  el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EDFAEB'; el.style.color='#0A6B51';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
+  }
 }
 function _examUpdateCardFR(){
   var pid=ProfileManager.getActiveId()||'default';
@@ -1564,7 +1585,13 @@ function _examUpdateCardFR(){
   if(!raw){el.style.display='none';return;}
   var d=JSON.parse(raw);
   el.style.display='block';
-  el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EDFAEB'; el.style.color='#0A6B51';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+  }
 }
 
 // ---- IMPORT questions_exam.js -----------------------------------
@@ -1622,6 +1649,6 @@ _examUpdateCardFR();
   });
 })();
 </script>
-<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2151</div>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2156</div>
 </body>
 </html>
