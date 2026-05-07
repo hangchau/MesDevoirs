@@ -15,6 +15,7 @@
 <script src="questions_pri5.js?v=20260506"></script>
 <script src="questions_exam.js?v=20260506c"></script>
 <script src="questions_francais.js?v=20260506"></script>
+<script src="questions_connaissance.js?v=20260507"></script>
 <script src="profiles.js"></script>
 <style>
 :root{--bg:#F6F5FF;--card:#FFFFFF;--text:#1e1b3a;--muted:#6B6899;--radius:18px;--shadow:0 4px 24px rgba(91,79,207,0.09);}
@@ -357,6 +358,20 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
         </div>
         <div id="exam-fr-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
         <button class="exam-start-btn" onclick="startExamFR()" style="background:linear-gradient(135deg,#4361EE,#7C3AED);">&#x1F4DD; Commencer le fran&ccedil;ais</button>
+      </div>
+    </div>
+    <div class="exam-card" style="margin-top:16px;">
+      <div class="exam-card-bd">
+        <div style="display:inline-block;background:linear-gradient(135deg,#1B9E78,#10B981);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F310; Connaissances g&eacute;n&eacute;rales</div>
+        <h3 style="font-family:'Fredoka One',sans-serif;font-size:1.25rem;margin:0 0 6px;">Simulation compl&egrave;te &mdash; 50 questions</h3>
+        <p style="font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:12px;">Sciences, g&eacute;ographie, histoire, culture g&eacute;n&eacute;rale &middot; Format identique &agrave; l&#39;examen r&eacute;el.</p>
+        <div style="background:#EDFAEB;border-radius:12px;padding:12px;text-align:center;border:1.5px solid #6BCFB0;margin-bottom:14px;">
+          <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#1B9E78;margin-bottom:4px;">Partie unique</div>
+          <div style="font-family:'Fredoka One',sans-serif;font-size:1.5rem;color:#1B9E78;">50 questions</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--muted);">Culture g&eacute;n&eacute;rale &middot; &#x23F1; 30 min</div>
+        </div>
+        <div id="exam-cg-last-score" style="display:none;background:#EDFAEB;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.83rem;font-weight:700;color:#0A6B51;"></div>
+        <button class="exam-start-btn" onclick="startExamCG()" style="background:linear-gradient(135deg,#1B9E78,#10B981);">&#x1F310; Commencer connaissances g&eacute;n&eacute;rales</button>
       </div>
     </div>
   </div>
@@ -1044,8 +1059,9 @@ function renderParentProfile(id){
   if(!histMath){var _om=localStorage.getItem('exam-last-'+id);if(_om)histMath=[JSON.parse(_om)];}
   var histFR=JSON.parse(localStorage.getItem('exam-hist-fr-'+id)||'null');
   if(!histFR){var _of=localStorage.getItem('exam-fr-last-'+id);if(_of)histFR=[JSON.parse(_of)];}
-  var hasMath=histMath&&histMath.length, hasFR=histFR&&histFR.length;
-  if(hasMath||hasFR){
+  var histCG=JSON.parse(localStorage.getItem('exam-hist-cg-'+id)||'null');
+  var hasMath=histMath&&histMath.length, hasFR=histFR&&histFR.length, hasCG=histCG&&histCG.length;
+  if(hasMath||hasFR||hasCG){
     html+='<div style="background:#FFF8EE;border:1.5px solid #F4A261;border-radius:14px;padding:14px 16px;margin-bottom:16px;">'
       +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:.95rem;color:#b45309;margin-bottom:10px;">\ud83c\udf93 Examen d\'admission</div>';
     if(hasMath){
@@ -1059,6 +1075,14 @@ function renderParentProfile(id){
     if(hasFR){
       html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:'+(hasMath?'12':'0')+'px 0 5px;">\ud83d\udcdd Fran\u00e7ais</div>';
       histFR.forEach(function(r){
+        var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
+        var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'%';
+        html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
+      });
+    }
+    if(hasCG){
+      html+='<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:'+((hasMath||hasFR)?'12':'0')+'px 0 5px;">\ud83c\udf10 Connaissances g\u00e9n\u00e9rales</div>';
+      histCG.forEach(function(r){
         var col=r.abandoned?'#C0392B':r.pct>=75?'#1B9E78':r.pct>=50?'#F4A261':'#E63946';
         var txt=r.abandoned?'\ud83d\udeab Abandonn\u00e9 ('+r.qi+' q.)':r.tot+'/50 \u00b7 '+r.pct+'%';
         html+='<div class="par-row"><span>'+r.d+'</span><span style="color:'+col+'">'+txt+'</span></div>';
@@ -1266,6 +1290,7 @@ function selectProfile(id) {
   updateProfPill();
   _examUpdateCard();
   _examUpdateCardFR();
+  _examUpdateCardCG();
   closeProfileSelector();
   toast('\ud83d\udc4b Bonjour\u00a0'+ProfileManager.getActive().name+'\u00a0!');
 }
@@ -1366,21 +1391,28 @@ resetStats = function() {
 };
 
 
-var EX={phase:null,mode:null,qi:0,score:{A:0,B:0,FR:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0,finished:false};
+var EX={phase:null,mode:null,qi:0,score:{A:0,B:0,FR:0,CG:0},timerInterval:null,timeLeft:0,qs:[],skipCount:0,origCount:0,finished:false};
 
 function startExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
-  EX.phase=null; EX.mode='math'; EX.qi=0; EX.score={A:0,B:0,FR:0}; EX.skipCount=0;
+  EX.phase=null; EX.mode='math'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0}; EX.skipCount=0;
   document.getElementById('exam-ov').classList.add('open');
   document.body.style.overflow='hidden';
   _examPhase('A');
 }
 function startExamFR(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
-  EX.phase=null; EX.mode='francais'; EX.qi=0; EX.score={A:0,B:0,FR:0}; EX.skipCount=0;
+  EX.phase=null; EX.mode='francais'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0}; EX.skipCount=0;
   document.getElementById('exam-ov').classList.add('open');
   document.body.style.overflow='hidden';
   _examPhase('FR');
+}
+function startExamCG(){
+  if(EX.timerInterval) clearInterval(EX.timerInterval);
+  EX.phase=null; EX.mode='cg'; EX.qi=0; EX.score={A:0,B:0,FR:0,CG:0}; EX.skipCount=0;
+  document.getElementById('exam-ov').classList.add('open');
+  document.body.style.overflow='hidden';
+  _examPhase('CG');
 }
 function closeExam(){
   if(EX.timerInterval) clearInterval(EX.timerInterval);
@@ -1393,6 +1425,12 @@ function closeExam(){
       if(_hfr.length>5)_hfr.pop();
       localStorage.setItem('exam-hist-fr-'+_pid,JSON.stringify(_hfr));
       _examUpdateCardFR();
+    } else if(EX.mode==='cg'){
+      var _hcg=JSON.parse(localStorage.getItem('exam-hist-cg-'+_pid)||'[]');
+      _hcg.unshift({sCG:EX.score.CG,tot:EX.score.CG,pct:Math.round(EX.score.CG/50*100),d:dateStr,abandoned:true,qi:EX.qi});
+      if(_hcg.length>5)_hcg.pop();
+      localStorage.setItem('exam-hist-cg-'+_pid,JSON.stringify(_hcg));
+      _examUpdateCardCG();
     } else {
       var sA=EX.score.A,sB=EX.score.B;
       var _hm=JSON.parse(localStorage.getItem('exam-hist-math-'+_pid)||'[]');
@@ -1408,16 +1446,16 @@ function closeExam(){
 }
 function _examPhase(ph){
   EX.phase=ph; EX.qi=0; EX.skipCount=0;
-  var pool=ph==='A'?EXAM_MATH_A_POOL:ph==='FR'?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL:[]):EXAM_MATH_B_POOL;
+  var pool=ph==='A'?EXAM_MATH_A_POOL:ph==='FR'?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL:[]):ph==='CG'?(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL:[]):EXAM_MATH_B_POOL;
   if(!pool||!pool.length){
     document.getElementById('exam-body').innerHTML='<p style="padding:24px 20px;color:#E63946;font-weight:700;">⚠️ Questions non chargées — rechargez la page (Ctrl+Shift+R).</p>';
     return;
   }
-  var count=ph==='A'?15:ph==='FR'?50:35;
+  var count=ph==='A'?15:(ph==='FR'||ph==='CG')?50:35;
   EX.origCount=count;
   EX.qs=shuffle(pool.slice()).slice(0,count).map(function(q){return {q:q,revisit:false};});
-  EX.timeLeft=ph==='A'?300:ph==='FR'?1800:2100;
-  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':ph==='FR'?'Français — Grammaire & Vocabulaire':'Partie B — Mathématique';
+  EX.timeLeft=ph==='A'?300:(ph==='FR'||ph==='CG')?1800:2100;
+  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':ph==='FR'?'Français — Grammaire & Vocabulaire':ph==='CG'?'Connaissances générales':'Partie B — Mathématique';
   document.getElementById('exam-qtot').textContent=count;
   _examTick();
   if(EX.timerInterval) clearInterval(EX.timerInterval);
@@ -1509,9 +1547,9 @@ function _examTransition(){
 function _examResults(){
   clearInterval(EX.timerInterval);
   EX.finished=true;
-  var isFR=(EX.mode==='francais');
-  var sA=EX.score.A,sB=EX.score.B,sFR=EX.score.FR;
-  var tot=isFR?sFR:(sA+sB),pct=Math.round(tot/50*100);
+  var isFR=(EX.mode==='francais'), isCG=(EX.mode==='cg');
+  var sA=EX.score.A,sB=EX.score.B,sFR=EX.score.FR,sCG=EX.score.CG;
+  var tot=isFR?sFR:isCG?sCG:(sA+sB),pct=Math.round(tot/50*100);
   var g=pct>=80?{e:'🏆',l:'Excellent !',c:'#1B9E78'}
        :pct>=65?{e:'🌟',l:'Très bien !',c:'#4361EE'}
        :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
@@ -1524,6 +1562,12 @@ function _examResults(){
     if(_hfr.length>5)_hfr.pop();
     localStorage.setItem('exam-hist-fr-'+_pid,JSON.stringify(_hfr));
     _examUpdateCardFR();
+  } else if(isCG){
+    var _hcg=JSON.parse(localStorage.getItem('exam-hist-cg-'+_pid)||'[]');
+    _hcg.unshift({sCG:sCG,tot:tot,pct:pct,d:dateStr});
+    if(_hcg.length>5)_hcg.pop();
+    localStorage.setItem('exam-hist-cg-'+_pid,JSON.stringify(_hcg));
+    _examUpdateCardCG();
   } else {
     var _hm=JSON.parse(localStorage.getItem('exam-hist-math-'+_pid)||'[]');
     _hm.unshift({sA:sA,sB:sB,tot:tot,pct:pct,d:dateStr});
@@ -1533,16 +1577,19 @@ function _examResults(){
   }
   var nAI=isFR
     ?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.filter(function(q){return!!q.ai;}).length:0)
+    :isCG?(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.filter(function(q){return!!q.ai;}).length:0)
     :(EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length);
   var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:8px;">⏭ '+EX.skipCount+' question(s) passée(s)</p>':'';
   var scoreGrid=isFR
     ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4361EE">'+sFR+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Français — Grammaire &amp; Vocabulaire</div></div>'
+    :isCG?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#1B9E78">'+sCG+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Connaissances g&eacute;n&eacute;rales</div></div>'
     :'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A — Calcul mental</div></div>'
      +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B — Mathématique</div></div>';
-  var restartFn=isFR?'startExamFR()':'startExam()';
-  var restartBg=isFR?'linear-gradient(135deg,#4361EE,#7C3AED)':'linear-gradient(135deg,#F59E0B,#F97316)';
+  var restartFn=isFR?'startExamFR()':isCG?'startExamCG()':'startExam()';
+  var restartBg=isFR?'linear-gradient(135deg,#4361EE,#7C3AED)':isCG?'linear-gradient(135deg,#1B9E78,#10B981)':'linear-gradient(135deg,#F59E0B,#F97316)';
   var poolInfo=isFR
     ?'Banque : '+(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
+    :isCG?'Banque : '+(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
     :'Banque : '+EXAM_MATH_A_POOL.length+' q·A &middot; '+EXAM_MATH_B_POOL.length+' q·B &middot; '+nAI+' générées par IA';
   document.getElementById('exam-body').innerHTML=
     '<div style="text-align:center;padding:20px 0 10px">'
@@ -1551,12 +1598,12 @@ function _examResults(){
     +'<span style="font-size:.7rem;font-weight:800">'+tot+'/50</span></div>'
     +'<div style="font-family:\'Fredoka One\',sans-serif;font-size:1.8rem;margin-bottom:8px;">'+g.e+' '+g.l+'</div>'
     +skipInfo
-    +'<div style="display:grid;grid-template-columns:'+(isFR?'1fr':'1fr 1fr')+';gap:10px;margin:14px 0;text-align:left">'
+    +'<div style="display:grid;grid-template-columns:'+((isFR||isCG)?'1fr':'1fr 1fr')+';gap:10px;margin:14px 0;text-align:left">'
     +scoreGrid
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;">'
     +'<button onclick="'+restartFn+'" style="padding:12px 24px;border-radius:30px;border:none;background:'+restartBg+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">🔁 Recommencer</button>'
-    +(isFR?'':'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>')
+    +((isFR||isCG)?'':'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>')
     +'<button onclick="closeExam()" style="padding:12px 20px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.9rem;cursor:pointer;">← Retour</button>'
     +'</div>'
     +'<p style="font-size:.7rem;color:var(--muted);font-weight:600;">'+poolInfo+'</p>'
@@ -1609,6 +1656,22 @@ function _examUpdateCardFR(){
   }
 }
 
+function _examUpdateCardCG(){
+  var pid=ProfileManager.getActiveId()||'default';
+  var hist=JSON.parse(localStorage.getItem('exam-hist-cg-'+pid)||'null');
+  var el=document.getElementById('exam-cg-last-score'); if(!el) return;
+  if(!hist||!hist.length){el.style.display='none';return;}
+  var d=hist[0];
+  el.style.display='block';
+  if(d.abandoned){
+    el.style.background='#FFF0F0'; el.style.color='#C0392B';
+    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+  } else {
+    el.style.background='#EDFAEB'; el.style.color='#0A6B51';
+    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+  }
+}
+
 // ---- IMPORT questions_exam.js -----------------------------------
 function _importExamQs(){
   var input=document.createElement('input');
@@ -1646,6 +1709,7 @@ buildCards(SEC1,'sec1-grid','sec1');
 showPriGrade('pri1');
 _examUpdateCard();
 _examUpdateCardFR();
+_examUpdateCardCG();
 
 // Profile init — sync from cloud, then load active profile or show selector
 (function initProfiles() {
@@ -1664,6 +1728,6 @@ _examUpdateCardFR();
   });
 })();
 </script>
-<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2207</div>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260506.2236</div>
 </body>
 </html>
