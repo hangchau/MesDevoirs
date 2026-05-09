@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -346,7 +346,7 @@ header p{color:rgba(255,255,255,0.82);font-size:1rem;margin-top:6px;font-weight:
         <button class="exam-start-btn" onclick="startExam()">&#x1F393; Commencer l&#39;examen</button>
       </div>
     </div>
-    <!-- Carte examen Français -->
+    <!-- Carte examen FranÃƒÂ§ais -->
     <div class="exam-card" style="margin-top:16px;">
       <div class="exam-card-bd">
         <div style="display:inline-block;background:linear-gradient(135deg,#4361EE,#7C3AED);color:#fff;font-family:'Fredoka One',sans-serif;font-size:.85rem;padding:4px 12px;border-radius:20px;margin-bottom:10px;">&#x1F4DD; Fran&ccedil;ais</div>
@@ -554,7 +554,7 @@ function recQuiz(key,score,tot){
 // ---- ADAPTIVE DIFFICULTY ----------------------------------------
 var LV_NEXT={facile:'moyen',moyen:'difficile'};
 var LV_PREV={difficile:'moyen',moyen:'facile'};
-var LV_ICON={facile:'🟢',moyen:'🟡',difficile:'🔴'};
+var LV_ICON={facile:'Ã°Å¸Å¸Â¢',moyen:'Ã°Å¸Å¸Â¡',difficile:'Ã°Å¸â€Â´'};
 function getAdaptiveLevel(key){ return localStorage.getItem('dv-level-'+key)||'moyen'; }
 function updateAdaptiveLevel(key){
   var h=hist[key]||[]; if(h.length<3) return;
@@ -692,7 +692,7 @@ function setCount(key, n, btn){
   [].slice.call(document.querySelectorAll('#cnt-'+key+' .qcount-btn')).forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   var label = n===1?'1 question':n+' questions';
-  document.getElementById('bgen-'+key).textContent = '✨ Générer '+label;
+  document.getElementById('bgen-'+key).textContent = 'Ã¢Å“Â¨ GÃƒÂ©nÃƒÂ©rer '+label;
 }
 
 // ---- QUIZ STATE -------------------------------------------------
@@ -810,7 +810,7 @@ function generate(s, topics, grade, nq){
   var glabel=_gradeNames[grade]||grade;
   nq = nq||10;
   var mcqN=Math.round(nq*0.7), openN=nq-mcqN;
-  var _lvLabel={facile:'facile — concepts de base, questions directes et simples',moyen:'moyen — application standard du programme',difficile:'difficile — analyse, raisonnement et questions complexes'};
+  var _lvLabel={facile:'facile Ã¢â‚¬â€ concepts de base, questions directes et simples',moyen:'moyen Ã¢â‚¬â€ application standard du programme',difficile:'difficile Ã¢â‚¬â€ analyse, raisonnement et questions complexes'};
   var _curLv=getAdaptiveLevel(CQ.key);
   var prompt='Tu es un enseignant quebecois experimente. Genere exactement '+nq+' questions de revision en francais pour un eleve de '
     +glabel+' dans la matiere "'+s.t+'" ('+s.sub+'), portant sur ces sujets: '+topics.join(', ')+'.\n'
@@ -818,8 +818,8 @@ function generate(s, topics, grade, nq){
     +'Retourne UNIQUEMENT un tableau JSON valide, sans aucun texte avant ou apres.\n'
     +'Format de chaque element:\n'
     +'{"subtopic":"<sujet>","type":"mcq","question":"<question>","choices":["<A>","<B>","<C>","<D>"],"answer":"<texte exact de la bonne reponse>","solution":"<explication 1-2 phrases>"}\n'
-    +'ou {"subtopic":"<sujet>","type":"open","question":"<question>","choices":null,"answer":"<reponse modele>","solution":"<explication>"}\n\n'
-    +'Regles:\n- '+mcqN+' questions mcq et '+openN+' questions open\n- Niveaux varies\n'
+
+    +'Regles:\n- Toutes les questions doivent être de type mcq\n- Niveaux varies\n'
     +'- Pour mcq: la bonne reponse DOIT figurer mot pour mot dans choices\n'
     +'- Choices: texte seulement, pas de lettre ni numero prefixe';
   return fetch('https://api.anthropic.com/v1/messages',{
@@ -868,10 +868,31 @@ function showQ(i){
   var qa=document.getElementById('q-qa'); qa.style.display='block';
   qIdx=i; qAns=false; prog();
   var q=CQ.qs[i];
-  qa.innerHTML=(q.type==='mcq')?renderMCQ(q,i):renderOpen(q,i);
+  if(q.type==='open'){
+    q.type='mcq';
+    q.choices = makeMCQChoices(q);
+  }
+  qa.innerHTML=renderMCQ(q,i);
   document.getElementById('quiz-modal').scrollTop=0;
 }
 function escJ(s){ return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+function makeMCQChoices(q){
+  if(Array.isArray(q.choices) && q.choices.length) return q.choices;
+  var choices=[];
+  if(q.answer && q.answer.toString().trim()) choices.push(q.answer.toString().trim());
+  var fallback=[
+    'Je ne sais pas',
+    'Aucune de ces rÃ©ponses',
+    'Pas cette rÃ©ponse',
+    'Option incorrecte',
+    'RÃ©ponse incomplÃ¨te'
+  ];
+  for(var i=0;i<fallback.length && choices.length<4;i++){
+    if(choices.indexOf(fallback[i])===-1) choices.push(fallback[i]);
+  }
+  while(choices.length<4) choices.push('Option supplÃ©mentaire');
+  return shuffle(choices).slice(0,4);
+}
 
 function renderMCQ(q,i){
   var last=(i+1>=CQ.qs.length);
@@ -933,7 +954,7 @@ function ansMCQ(btn,chosen,correct,i){
   prog();
 }
 function wordSimilarity(a,b){
-  function norm(s){return s.toLowerCase().replace(/[^a-z0-9àâäéèêëîïôùûüç]/g,' ').replace(/\s+/g,' ').trim();}
+  function norm(s){return s.toLowerCase().replace(/[^a-z0-9ÃƒÂ ÃƒÂ¢ÃƒÂ¤ÃƒÂ©ÃƒÂ¨ÃƒÂªÃƒÂ«ÃƒÂ®ÃƒÂ¯ÃƒÂ´ÃƒÂ¹ÃƒÂ»ÃƒÂ¼ÃƒÂ§]/g,' ').replace(/\s+/g,' ').trim();}
   var wa=norm(a).split(' ').filter(Boolean);
   var wb=norm(b).split(' ').filter(Boolean);
   if(!wa.length||!wb.length) return 0;
@@ -1226,9 +1247,9 @@ function _renderParSubj(key,label,sessions,subjectDef){
   h+='<div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0;">'
     +'<span style="font-size:.7rem;font-weight:800;color:var(--muted)">Niveau :</span>'
     +'<select onchange="setParentLevel(\''+key+'\',this.value)" style="font-family:\'Nunito\',sans-serif;font-size:.78rem;font-weight:700;border:1.5px solid #ddd;border-radius:8px;padding:3px 6px;cursor:pointer;">'
-    +'<option value="facile"'+(curLv==='facile'?' selected':'')+'>🟢 Facile</option>'
-    +'<option value="moyen"'+(curLv==='moyen'?' selected':'')+'>🟡 Moyen</option>'
-    +'<option value="difficile"'+(curLv==='difficile'?' selected':'')+'>🔴 Difficile</option>'
+    +'<option value="facile"'+(curLv==='facile'?' selected':'')+'>Ã°Å¸Å¸Â¢ Facile</option>'
+    +'<option value="moyen"'+(curLv==='moyen'?' selected':'')+'>Ã°Å¸Å¸Â¡ Moyen</option>'
+    +'<option value="difficile"'+(curLv==='difficile'?' selected':'')+'>Ã°Å¸â€Â´ Difficile</option>'
     +'</select>'
     +'</div>';
   return h+'</div>';
@@ -1487,14 +1508,14 @@ function _examPhase(ph){
   EX.phase=ph; EX.qi=0; EX.skipCount=0;
   var pool=ph==='A'?EXAM_MATH_A_POOL:ph==='FR'?(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL:[]):ph==='CG'?(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL:[]):ph==='LQ'?(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL:[]):EXAM_MATH_B_POOL;
   if(!pool||!pool.length){
-    document.getElementById('exam-body').innerHTML='<p style="padding:24px 20px;color:#E63946;font-weight:700;">⚠️ Questions non chargées — rechargez la page (Ctrl+Shift+R).</p>';
+    document.getElementById('exam-body').innerHTML='<p style="padding:24px 20px;color:#E63946;font-weight:700;">Ã¢Å¡Â Ã¯Â¸Â Questions non chargÃƒÂ©es Ã¢â‚¬â€ rechargez la page (Ctrl+Shift+R).</p>';
     return;
   }
   var count=ph==='A'?15:(ph==='FR'||ph==='CG'||ph==='LQ')?50:35;
   EX.origCount=count;
   EX.qs=shuffle(pool.slice()).slice(0,count).map(function(q){return {q:q,revisit:false};});
   EX.timeLeft=ph==='A'?300:(ph==='FR'||ph==='CG')?1800:ph==='LQ'?2100:2100;
-  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A — Calcul mental':ph==='FR'?'Français — Grammaire & Vocabulaire':ph==='CG'?'Connaissances générales':ph==='LQ'?'Logique — Raisonnement':'Partie B — Mathématique';
+  document.getElementById('exam-part-label').textContent=ph==='A'?'Partie A Ã¢â‚¬â€ Calcul mental':ph==='FR'?'FranÃƒÂ§ais Ã¢â‚¬â€ Grammaire & Vocabulaire':ph==='CG'?'Connaissances gÃƒÂ©nÃƒÂ©rales':ph==='LQ'?'Logique Ã¢â‚¬â€ Raisonnement':'Partie B Ã¢â‚¬â€ MathÃƒÂ©matique';
   document.getElementById('exam-qtot').textContent=count;
   _examTick();
   if(EX.timerInterval) clearInterval(EX.timerInterval);
@@ -1531,15 +1552,15 @@ function _examShowQ(i){
   var opts=q.choices.map(function(c,ci){
     return '<button class="q-choice _ec" onclick="_ansExam(this,\''+escJ(c)+'\',\''+escJ(q.answer)+'\','+i+')" style="--qc:#F97316;--ql:#FFF5EB">'+L[ci]+' '+c+'</button>';
   }).join('');
-  var nxtLbl=last?((EX.phase==='A'&&EX.mode==='math')?'&#x27A1; Partie B':'&#x1F3C1; Résultats'):'Question suivante →';
-  var revisitBadge=isRevisit?'<span style="display:inline-block;background:#F59E0B;color:#fff;font-size:.68rem;font-weight:800;padding:2px 10px;border-radius:20px;margin-bottom:4px;">★ Révision</span><br>':'';
+  var nxtLbl=last?((EX.phase==='A'&&EX.mode==='math')?'&#x27A1; Partie B':'&#x1F3C1; RÃƒÂ©sultats'):'Question suivante Ã¢â€ â€™';
+  var revisitBadge=isRevisit?'<span style="display:inline-block;background:#F59E0B;color:#fff;font-size:.68rem;font-weight:800;padding:2px 10px;border-radius:20px;margin-bottom:4px;">Ã¢Ëœâ€¦ RÃƒÂ©vision</span><br>':'';
   var aiTag=q.ai?'<span style="font-size:.64rem;color:var(--muted);font-weight:700;opacity:.7"> [IA]</span>':'';
   var skipBtn=!isRevisit
-    ?'<button onclick="_skipExam()" style="padding:8px 18px;border-radius:20px;border:2px dashed #F59E0B;background:transparent;color:#b45309;font-size:.85rem;font-weight:700;cursor:pointer;">⏭ Passer</button>'
+    ?'<button onclick="_skipExam()" style="padding:8px 18px;border-radius:20px;border:2px dashed #F59E0B;background:transparent;color:#b45309;font-size:.85rem;font-weight:700;cursor:pointer;">Ã¢ÂÂ­ Passer</button>'
     :'';
   var graphicHtml=q.graphic?'<div class="q-graphic">'+q.graphic+'</div>':'';
   var html='<div class="q-blk">'
-    +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' — '+(EX.phase==='A'?'Partie A (calcul mental)':EX.phase==='FR'?'Français':EX.phase==='CG'?'Connaissances générales':EX.phase==='LQ'?'Logique':'Partie B')+aiTag+'</div>'
+    +'<div class="q-num">'+revisitBadge+'Question '+(i+1)+' / '+EX.qs.length+' Ã¢â‚¬â€ '+(EX.phase==='A'?'Partie A (calcul mental)':EX.phase==='FR'?'FranÃƒÂ§ais':EX.phase==='CG'?'Connaissances gÃƒÂ©nÃƒÂ©rales':EX.phase==='LQ'?'Logique':'Partie B')+aiTag+'</div>'
     +'<div class="q-txt">'+q.q+'</div>'
     +graphicHtml
     +'<div class="q-choices">'+opts+'</div>'
@@ -1566,21 +1587,21 @@ function _ansExam(btn,chosen,correct,i){
   var skipEl=document.getElementById('eskip-'+i); if(skipEl) skipEl.style.display='none';
   var fb=document.getElementById('efb-'+i);
   fb.className='q-fb show '+(ok?'ok':'bad');
-  fb.textContent=ok?'✅ Bonne réponse !':'❌ La bonne réponse : '+correct;
+  fb.textContent=ok?'Ã¢Å“â€¦ Bonne rÃƒÂ©ponse !':'Ã¢ÂÅ’ La bonne rÃƒÂ©ponse : '+correct;
   var sol=document.getElementById('esol-'+i); if(sol) sol.classList.add('show');
   document.getElementById('enav-'+i).style.display='flex';
 }
 function _examTransition(){
   clearInterval(EX.timerInterval);
-  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:6px;">⏭ '+EX.skipCount+' question(s) passée(s) et révisée(s)</p>':'';
+  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:6px;">Ã¢ÂÂ­ '+EX.skipCount+' question(s) passÃƒÂ©e(s) et rÃƒÂ©visÃƒÂ©e(s)</p>':'';
   document.getElementById('exam-body').innerHTML=
     '<div style="text-align:center;padding:32px 16px;">'
     +'<div style="font-size:3rem;margin-bottom:12px;">&#x23F1;&#xFE0F;</div>'
-    +'<h2 style="font-family:\'Fredoka One\',sans-serif;font-size:1.6rem;margin-bottom:8px;">Partie A terminée !</h2>'
+    +'<h2 style="font-family:\'Fredoka One\',sans-serif;font-size:1.6rem;margin-bottom:8px;">Partie A terminÃƒÂ©e !</h2>'
     +'<p style="font-size:1rem;font-weight:700;color:var(--muted);margin-bottom:6px;">Score : <strong style="color:#F97316">'+EX.score.A+' / 15</strong></p>'
     +skipInfo
-    +'<p style="font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:24px;">La Partie B commence maintenant. 35 questions · 35 minutes.</p>'
-    +'<button onclick="_examPhase(\'B\')" style="padding:14px 32px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1.1rem;cursor:pointer;">Commencer la Partie B →</button>'
+    +'<p style="font-size:.86rem;color:var(--muted);font-weight:600;margin-bottom:24px;">La Partie B commence maintenant. 35 questions Ã‚Â· 35 minutes.</p>'
+    +'<button onclick="_examPhase(\'B\')" style="padding:14px 32px;border-radius:30px;border:none;background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1.1rem;cursor:pointer;">Commencer la Partie B Ã¢â€ â€™</button>'
     +'</div>';
 }
 function _examResults(){
@@ -1589,10 +1610,10 @@ function _examResults(){
   var isFR=(EX.mode==='francais'), isCG=(EX.mode==='cg'), isLQ=(EX.mode==='lq');
   var sA=EX.score.A,sB=EX.score.B,sFR=EX.score.FR,sCG=EX.score.CG,sLQ=EX.score.LQ;
   var tot=isFR?sFR:isCG?sCG:isLQ?sLQ:(sA+sB),pct=Math.round(tot/50*100);
-  var g=pct>=80?{e:'🏆',l:'Excellent !',c:'#1B9E78'}
-       :pct>=65?{e:'🌟',l:'Très bien !',c:'#4361EE'}
-       :pct>=50?{e:'😊',l:'Bien !',c:'#F4A261'}
-               :{e:'📚',l:'Continue !',c:'#E63946'};
+  var g=pct>=80?{e:'Ã°Å¸Ââ€ ',l:'Excellent !',c:'#1B9E78'}
+       :pct>=65?{e:'Ã°Å¸Å’Å¸',l:'TrÃƒÂ¨s bien !',c:'#4361EE'}
+       :pct>=50?{e:'Ã°Å¸ËœÅ ',l:'Bien !',c:'#F4A261'}
+               :{e:'Ã°Å¸â€œÅ¡',l:'Continue !',c:'#E63946'};
   var dateStr=new Date().toLocaleDateString('fr-CA',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   var _pid=ProfileManager.getActiveId()||'default';
   if(isFR){
@@ -1625,20 +1646,20 @@ function _examResults(){
     :isCG?(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.filter(function(q){return!!q.ai;}).length:0)
     :isLQ?(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL.filter(function(q){return!!q.ai;}).length:0)
     :(EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length);
-  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:8px;">⏭ '+EX.skipCount+' question(s) passée(s)</p>':'';
+  var skipInfo=EX.skipCount>0?'<p style="font-size:.82rem;color:#b45309;font-weight:700;margin-bottom:8px;">Ã¢ÂÂ­ '+EX.skipCount+' question(s) passÃƒÂ©e(s)</p>':'';
   var scoreGrid=isFR
-    ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4361EE">'+sFR+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Français — Grammaire &amp; Vocabulaire</div></div>'
+    ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4361EE">'+sFR+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">FranÃƒÂ§ais Ã¢â‚¬â€ Grammaire &amp; Vocabulaire</div></div>'
     :isCG?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#1B9E78">'+sCG+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Connaissances g&eacute;n&eacute;rales</div></div>'
     :isLQ?'<div style="background:#fafafa;border-radius:12px;padding:12px;text-align:center"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#4F46E5">'+sLQ+'/50</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Logique &mdash; Raisonnement</div></div>'
-    :'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A — Calcul mental</div></div>'
-     +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B — Mathématique</div></div>';
+    :'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sA+'/15</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie A Ã¢â‚¬â€ Calcul mental</div></div>'
+     +'<div style="background:#fafafa;border-radius:12px;padding:12px"><div style="font-family:\'Fredoka One\',sans-serif;font-size:1.5rem;color:#F97316">'+sB+'/35</div><div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">Partie B Ã¢â‚¬â€ MathÃƒÂ©matique</div></div>';
   var restartFn=isFR?'startExamFR()':isCG?'startExamCG()':isLQ?'startExamLQ()':'startExam()';
   var restartBg=isFR?'linear-gradient(135deg,#4361EE,#7C3AED)':isCG?'linear-gradient(135deg,#1B9E78,#10B981)':isLQ?'linear-gradient(135deg,#4F46E5,#7C3AED)':'linear-gradient(135deg,#F59E0B,#F97316)';
   var poolInfo=isFR
-    ?'Banque : '+(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
-    :isCG?'Banque : '+(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
-    :isLQ?'Banque : '+(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL.length:0)+' questions &middot; '+nAI+' générées par IA'
-    :'Banque : '+EXAM_MATH_A_POOL.length+' q·A &middot; '+EXAM_MATH_B_POOL.length+' q·B &middot; '+nAI+' générées par IA';
+    ?'Banque : '+(typeof EXAM_FR_POOL!=='undefined'?EXAM_FR_POOL.length:0)+' questions &middot; '+nAI+' gÃƒÂ©nÃƒÂ©rÃƒÂ©es par IA'
+    :isCG?'Banque : '+(typeof EXAM_CG_POOL!=='undefined'?EXAM_CG_POOL.length:0)+' questions &middot; '+nAI+' gÃƒÂ©nÃƒÂ©rÃƒÂ©es par IA'
+    :isLQ?'Banque : '+(typeof EXAM_LQ_POOL!=='undefined'?EXAM_LQ_POOL.length:0)+' questions &middot; '+nAI+' gÃƒÂ©nÃƒÂ©rÃƒÂ©es par IA'
+    :'Banque : '+EXAM_MATH_A_POOL.length+' qÃ‚Â·A &middot; '+EXAM_MATH_B_POOL.length+' qÃ‚Â·B &middot; '+nAI+' gÃƒÂ©nÃƒÂ©rÃƒÂ©es par IA';
   document.getElementById('exam-body').innerHTML=
     '<div style="text-align:center;padding:20px 0 10px">'
     +'<div style="width:120px;height:120px;border-radius:50%;margin:0 auto 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:6px solid '+g.c+';color:'+g.c+'">'
@@ -1650,16 +1671,16 @@ function _examResults(){
     +scoreGrid
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;">'
-    +'<button onclick="'+restartFn+'" style="padding:12px 24px;border-radius:30px;border:none;background:'+restartBg+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">🔁 Recommencer</button>'
-    +((isFR||isCG||isLQ)?'':'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">📥 Sauvegarder questions</button>')
-    +'<button onclick="closeExam()" style="padding:12px 20px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.9rem;cursor:pointer;">← Retour</button>'
+    +'<button onclick="'+restartFn+'" style="padding:12px 24px;border-radius:30px;border:none;background:'+restartBg+';color:#fff;font-family:\'Fredoka One\',sans-serif;font-size:1rem;cursor:pointer;">Ã°Å¸â€Â Recommencer</button>'
+    +((isFR||isCG||isLQ)?'':'<button onclick="_downloadExamQs()" style="padding:12px 20px;border-radius:30px;border:none;background:#EDF0FF;color:#4361EE;font-family:\'Fredoka One\',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;">Ã°Å¸â€œÂ¥ Sauvegarder questions</button>')
+    +'<button onclick="closeExam()" style="padding:12px 20px;border-radius:30px;border:none;background:#f0f0f8;color:var(--muted);font-family:\'Fredoka One\',sans-serif;font-size:.9rem;cursor:pointer;">Ã¢â€ Â Retour</button>'
     +'</div>'
     +'<p style="font-size:.7rem;color:var(--muted);font-weight:600;">'+poolInfo+'</p>'
     +'</div>';
 }
 function _downloadExamQs(){
-  var content='// Examen d\'admission — PFEQ Québec\n'
-    +'// Téléchargé le : '+new Date().toLocaleDateString('fr-CA')+'\n'
+  var content='// Examen d\'admission Ã¢â‚¬â€ PFEQ QuÃƒÂ©bec\n'
+    +'// TÃƒÂ©lÃƒÂ©chargÃƒÂ© le : '+new Date().toLocaleDateString('fr-CA')+'\n'
     +'// Pool A : '+EXAM_MATH_A_POOL.length+' questions ('+EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length+' IA)\n'
     +'// Pool B : '+EXAM_MATH_B_POOL.length+' questions ('+EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length+' IA)\n'
     +'var EXAM_MATH_A_POOL='+JSON.stringify(EXAM_MATH_A_POOL,null,2)+';\n'
@@ -1669,7 +1690,7 @@ function _downloadExamQs(){
   a.href=URL.createObjectURL(blob);
   a.download='questions_exam.js';
   a.click();
-  toast('📥 questions_exam.js sauvegardé ('+(EXAM_MATH_A_POOL.length+EXAM_MATH_B_POOL.length)+' questions)');
+  toast('Ã°Å¸â€œÂ¥ questions_exam.js sauvegardÃƒÂ© ('+(EXAM_MATH_A_POOL.length+EXAM_MATH_B_POOL.length)+' questions)');
 }
 function _examUpdateCard(){
   var pid=ProfileManager.getActiveId()||'default';
@@ -1681,10 +1702,10 @@ function _examUpdateCard(){
   el.style.display='block';
   if(d.abandoned){
     el.style.background='#FFF0F0'; el.style.color='#C0392B';
-    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+    el.innerHTML='Ã°Å¸Å¡Â« Dernier rÃƒÂ©sultat : <strong>AbandonnÃƒÂ©</strong> Ã¢â‚¬â€ '+d.qi+' question(s) Ã‚Â· '+d.d;
   } else {
     el.style.background='#EDFAEB'; el.style.color='#0A6B51';
-    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
+    el.innerHTML='Ã¢ÂÂ° Dernier rÃƒÂ©sultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; A : '+d.sA+'/15 &middot; B : '+d.sB+'/35 &middot; '+d.d;
   }
 }
 function _examUpdateCardFR(){
@@ -1697,10 +1718,10 @@ function _examUpdateCardFR(){
   el.style.display='block';
   if(d.abandoned){
     el.style.background='#FFF0F0'; el.style.color='#C0392B';
-    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+    el.innerHTML='Ã°Å¸Å¡Â« Dernier rÃƒÂ©sultat : <strong>AbandonnÃƒÂ©</strong> Ã¢â‚¬â€ '+d.qi+' question(s) Ã‚Â· '+d.d;
   } else {
     el.style.background='#EDFAEB'; el.style.color='#0A6B51';
-    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+    el.innerHTML='Ã¢ÂÂ° Dernier rÃƒÂ©sultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
   }
 }
 
@@ -1713,10 +1734,10 @@ function _examUpdateCardCG(){
   el.style.display='block';
   if(d.abandoned){
     el.style.background='#FFF0F0'; el.style.color='#C0392B';
-    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+    el.innerHTML='Ã°Å¸Å¡Â« Dernier rÃƒÂ©sultat : <strong>AbandonnÃƒÂ©</strong> Ã¢â‚¬â€ '+d.qi+' question(s) Ã‚Â· '+d.d;
   } else {
     el.style.background='#EDFAEB'; el.style.color='#0A6B51';
-    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+    el.innerHTML='Ã¢ÂÂ° Dernier rÃƒÂ©sultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
   }
 }
 
@@ -1729,10 +1750,10 @@ function _examUpdateCardLQ(){
   el.style.display='block';
   if(d.abandoned){
     el.style.background='#FFF0F0'; el.style.color='#C0392B';
-    el.innerHTML='🚫 Dernier résultat : <strong>Abandonné</strong> — '+d.qi+' question(s) · '+d.d;
+    el.innerHTML='Ã°Å¸Å¡Â« Dernier rÃƒÂ©sultat : <strong>AbandonnÃƒÂ©</strong> Ã¢â‚¬â€ '+d.qi+' question(s) Ã‚Â· '+d.d;
   } else {
     el.style.background='#EEF2FF'; el.style.color='#3730A3';
-    el.innerHTML='⏰ Dernier résultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
+    el.innerHTML='Ã¢ÂÂ° Dernier rÃƒÂ©sultat : <strong>'+d.tot+'/50 ('+d.pct+'%)</strong> &mdash; '+d.d;
   }
 }
 
@@ -1757,9 +1778,9 @@ function _importExamQs(){
         EXAM_MATH_B_POOL=res[1];
         var nAI=EXAM_MATH_A_POOL.filter(function(q){return!!q.ai;}).length
               +EXAM_MATH_B_POOL.filter(function(q){return!!q.ai;}).length;
-        toast('✅ Importé : '+EXAM_MATH_A_POOL.length+' q·A + '+EXAM_MATH_B_POOL.length+' q·B ('+nAI+' IA)');
+        toast('Ã¢Å“â€¦ ImportÃƒÂ© : '+EXAM_MATH_A_POOL.length+' qÃ‚Â·A + '+EXAM_MATH_B_POOL.length+' qÃ‚Â·B ('+nAI+' IA)');
       } catch(err){
-        toast('❌ Import échoué : '+err.message);
+        toast('Ã¢ÂÅ’ Import ÃƒÂ©chouÃƒÂ© : '+err.message);
       }
     };
     reader.readAsText(file,'utf-8');
@@ -1776,7 +1797,7 @@ _examUpdateCardFR();
 _examUpdateCardCG();
 _examUpdateCardLQ();
 
-// Profile init — sync from cloud, then load active profile or show selector
+// Profile init Ã¢â‚¬â€ sync from cloud, then load active profile or show selector
 (function initProfiles() {
   ProfileManager.syncFromCloud(function (profiles) {
     var data = ProfileManager.loadStats();
@@ -1793,6 +1814,11 @@ _examUpdateCardLQ();
   });
 })();
 </script>
-<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260508.1100</div>
+<div style="text-align:center;font-size:.62rem;color:var(--muted);padding:6px 0 20px;opacity:.45;letter-spacing:.03em;">v20260508.2329</div>
 </body>
 </html>
+
+
+
+
+
